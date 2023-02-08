@@ -5,11 +5,15 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/msjai/loyalty-service/internal/config"
+	"github.com/msjai/loyalty-service/internal/usecase"
 )
 
 // NewRouter -.
-func NewRouter(handler *chi.Mux, cfg *config.Config) *chi.Mux {
-	handler.Use(middleware.Logger)
+func NewRouter(router *chi.Mux, loyalty usecase.Loyalty, cfg *config.Config) *chi.Mux {
+	router.Use(middleware.Logger)
 
-	return handler
+	// Routers
+	router = newLoyaltyRoutes(router, loyalty, cfg)
+
+	return router
 }

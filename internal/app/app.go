@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 	"errors"
-	"log"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,16 +14,33 @@ import (
 
 	"github.com/msjai/loyalty-service/internal/config"
 	"github.com/msjai/loyalty-service/internal/controller"
-	"github.com/msjai/loyalty-service/pkg/logger"
+	"github.com/msjai/loyalty-service/internal/usecase"
+	"github.com/msjai/loyalty-service/internal/usecase/repo"
+	"github.com/msjai/loyalty-service/internal/usecase/repo/postgres"
+	"github.com/msjai/loyalty-service/internal/usecase/webapi"
 )
 
+// Run -.
 func Run(cfg *config.Config) {
-	l := logger.New()
+	l := cfg.L
 	l.Infow("starting server...")
+
+	repoPG, err := postgres.New(cfg.DataBaseURI, cfg.L)
+	if err != nil {
+		l.Fatal(fmt.Errorf("app - Run - repo.New: %w", err))
+	}
+	defer repoPG.Close()
+
+	// Use case
+	loyaltyUseCase := usecase.New(
+		repo.New(repoPG),
+		webapi.New(cfg),
+		cfg,
+	)
 
 	// initialize chi Mux object
 	handler := chi.NewRouter()
-	controller.NewRouter(handler, cfg)
+	controller.NewRouter(handler, loyaltyUseCase, cfg)
 	server := &http.Server{
 		Addr:              cfg.RunAddress,
 		Handler:           handler,
@@ -42,7 +59,9 @@ func Run(cfg *config.Config) {
 		<-sig
 
 		// Shutdown signal with grace period of 30 seconds
-		shutdownCtx, _ := context.WithTimeout(serverCtx, 30*time.Second) //nolint:govet
+		shutdownCtx, shutdownCancel := context.WithTimeout(serverCtx, 30*time.Second)
+		defer shutdownCancel()
+
 		l.Infow("Shutting down server...")
 		go func() {
 			<-shutdownCtx.Done()
@@ -54,13 +73,13 @@ func Run(cfg *config.Config) {
 		// Trigger graceful shutdown
 		err := server.Shutdown(shutdownCtx)
 		if err != nil {
-			log.Fatal(err)
+			l.Fatal(err)
 		}
 		serverStopCtx()
 	}()
 
 	// Run the server
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		l.Fatalf("listen: %s\n", err)
 	}
