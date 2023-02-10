@@ -70,6 +70,7 @@ func (routes *loyaltyRoutes) PostRegUHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	w.Header().Set("Content-Type", ApplicationJSON)
+	w.Header().Set("Authorization", "Bearer "+loyalty.User.Token)
 	w.WriteHeader(http.StatusOK)
 	response, err := json.Marshal(UserID{ID: strconv.FormatInt(loyalty.User.ID, 10), Token: loyalty.User.Token})
 	if err != nil {
@@ -123,6 +124,7 @@ func (routes *loyaltyRoutes) PostLogUHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	w.Header().Set("Content-Type", ApplicationJSON)
+	w.Header().Set("Authorization", "Bearer "+loyalty.User.Token)
 	w.WriteHeader(http.StatusOK)
 	response, err := json.Marshal(UserID{ID: strconv.FormatInt(loyalty.User.ID, 10), Token: loyalty.User.Token})
 	if err != nil {
