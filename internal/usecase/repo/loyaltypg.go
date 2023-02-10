@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jackc/pgx/v5/pgconn"
-
 	"github.com/msjai/loyalty-service/internal/entity"
 )
 
@@ -51,18 +49,7 @@ func (r *LoyaltyRepoS) AddNewUser(ctx context.Context, loyalty *entity.Loyalty) 
 	row = stmt.QueryRowContext(ctx, loyalty.User.Login, loyalty.User.Password)
 	err = row.Scan(&id)
 	if err != nil {
-		// Здесь err только для условия отката транзакции, не перезаписывает исходную ошибку
-		if err := tx.Rollback(); err != nil {
-			return nil, fmt.Errorf("repo - AddNewUser - tx.Rollback: %w", err)
-		}
-		// Обрабатываем ошибку, что такой логин уже есть в базе
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			// Отдаем ошибку исходную ошибку, о том что такой пользователь уже есть
-			return nil, fmt.Errorf("repo - AddNewUser - Scan: %w", ErrLoginAlreadyTaken)
-		}
-		// Отдаем исходную ошибку, если она не про уникальность логина
-		return nil, fmt.Errorf("repo - AddNewUser - stmt.Exec: %w", err)
+		return nil, handleInsertError(tx, err)
 	}
 
 	if err = tx.Commit(); err != nil {
