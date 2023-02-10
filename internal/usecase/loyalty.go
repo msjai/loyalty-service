@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 
@@ -11,6 +12,8 @@ import (
 )
 
 var ErrLoginAlreadyTaken = errors.New("login is already taken")
+
+const salt = "dkY6#dgb&jdg"
 
 // LoyaltyUseCase -.
 type LoyaltyUseCase struct {
@@ -28,8 +31,20 @@ func New(r LoyaltyRepo, w LoyaltyWebAPI, c *config.Config) *LoyaltyUseCase {
 	}
 }
 
+// TODO Перенести функцию на уровень репозитория
+func hashPassword(pass string) string {
+	h := sha256.New()
+	h.Write([]byte(pass))
+	dst := h.Sum([]byte(salt))
+
+	return fmt.Sprintf("%x", dst)
+}
+
 // PostRegUser -.
 func (luc *LoyaltyUseCase) PostRegUser(ctx context.Context, loyalty *entity.Loyalty) (*entity.Loyalty, error) {
+	// TODO Перенести вызов функции на уровень репозитория
+	loyalty.User.Password = hashPassword(loyalty.User.Password)
+
 	loyalty, err := luc.repo.AddNewUser(ctx, loyalty)
 	if err != nil {
 		if errors.Is(err, repo.ErrLoginAlreadyTaken) {
@@ -42,8 +57,18 @@ func (luc *LoyaltyUseCase) PostRegUser(ctx context.Context, loyalty *entity.Loya
 }
 
 // PostLoginUser -.
-func (luc *LoyaltyUseCase) PostLoginUser(context.Context, *entity.Loyalty) (*entity.Loyalty, error) {
-	return nil, nil
+func (luc *LoyaltyUseCase) PostLoginUser(ctx context.Context, loyalty *entity.Loyalty) (*entity.Loyalty, error) {
+	loyalty.User.Password = hashPassword(loyalty.User.Password)
+
+	loyalty, err := luc.repo.FindUser(ctx, loyalty)
+	if err != nil {
+		if errors.Is(err, repo.ErrLoginAlreadyTaken) {
+			return nil, fmt.Errorf("usecase - PostLoginUser - FindUser: %w", ErrLoginAlreadyTaken)
+		}
+		return nil, fmt.Errorf("usecase - PostLoginUser - FindUser: %w", err)
+	}
+
+	return loyalty, nil
 }
 
 // PostUserOrder -.

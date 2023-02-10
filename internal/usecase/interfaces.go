@@ -21,7 +21,7 @@ type (
 	// LoyaltyRepo -.
 	LoyaltyRepo interface {
 		AddNewUser(context.Context, *entity.Loyalty) (*entity.Loyalty, error)
-		FindUser(context.Context) (*entity.Loyalty, error)
+		FindUser(context.Context, *entity.Loyalty) (*entity.Loyalty, error)
 	}
 
 	// LoyaltyWebAPI -.
