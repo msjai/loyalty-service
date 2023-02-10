@@ -13,8 +13,8 @@ const (
 
 // Loyalty .-
 type Loyalty struct {
-	User       User
-	UserOrders []UserOrder
+	User       *User       `json:"user"`
+	UserOrders []UserOrder `json:"user_orders"` //nolint:tagliatelle
 }
 
 // UserOrder .-
@@ -31,6 +31,6 @@ type UserOrder struct {
 type User struct {
 	ID       int64   `json:"id"`
 	Login    string  `json:"login" valid:"required"`
-	Password string  `json:"password"`
+	Password string  `json:"password" valid:"required"`
 	Balance  float64 `json:"balance"`
 }

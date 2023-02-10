@@ -20,7 +20,7 @@ type (
 
 	// LoyaltyRepo -.
 	LoyaltyRepo interface {
-		AddNewUser(context.Context, *entity.Loyalty) error
+		AddNewUser(context.Context, *entity.Loyalty) (*entity.Loyalty, error)
 		FindUser(context.Context) (*entity.Loyalty, error)
 	}
 

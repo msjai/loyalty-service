@@ -41,10 +41,10 @@ func newLoyaltyRoutes(router *chi.Mux, loyalty usecase.Loyalty, cfg *config.Conf
 	// Only gzip request encoding accepted
 	// If the client supports compression, the response will be compressed with gzip
 	router.Group(func(router chi.Router) {
-		router.Use(middleware.AllowContentType(ApplicationJSON))
 		router.Use(chiMW.AllowContentEncoding(GZip))
-		router.Use(compress)
+		router.Use(middleware.AllowContentType(ApplicationJSON))
 		router.Use(middleware.Decompress)
+		router.Use(compress)
 		router.Post("/api/user/register", routes.PostRegUHandler)
 		router.Post("/api/user/login", routes.PostLogUHandler)
 	})

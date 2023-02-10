@@ -2,10 +2,15 @@ package usecase
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/msjai/loyalty-service/internal/config"
 	"github.com/msjai/loyalty-service/internal/entity"
+	"github.com/msjai/loyalty-service/internal/usecase/repo"
 )
+
+var ErrLoginAlreadyTaken = errors.New("login is already taken")
 
 // LoyaltyUseCase -.
 type LoyaltyUseCase struct {
@@ -24,7 +29,15 @@ func New(r LoyaltyRepo, w LoyaltyWebAPI, c *config.Config) *LoyaltyUseCase {
 }
 
 // PostRegUser -.
-func (luc *LoyaltyUseCase) PostRegUser(context.Context, *entity.Loyalty) (*entity.Loyalty, error) {
+func (luc *LoyaltyUseCase) PostRegUser(ctx context.Context, loyalty *entity.Loyalty) (*entity.Loyalty, error) {
+	loyalty, err := luc.repo.AddNewUser(ctx, loyalty)
+	if err != nil {
+		if errors.Is(err, repo.ErrLoginAlreadyTaken) {
+			return nil, fmt.Errorf("usecase - PostRegUser - AddNewUser: %w", ErrLoginAlreadyTaken)
+		}
+		return nil, fmt.Errorf("usecase - PostRegUser - AddNewUser: %w", err)
+	}
+
 	return nil, nil
 }
 

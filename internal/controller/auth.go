@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 
@@ -9,6 +10,7 @@ import (
 
 	"github.com/msjai/loyalty-service/internal/controller/middleware"
 	"github.com/msjai/loyalty-service/internal/entity"
+	"github.com/msjai/loyalty-service/internal/usecase"
 )
 
 type UserID struct {
@@ -20,6 +22,8 @@ func (routes *loyaltyRoutes) PostRegUHandler(w http.ResponseWriter, r *http.Requ
 	var User entity.User
 
 	// Через контекст получаем reader
+	// В случае необхоимости тело было распаковано в middleware
+	// Далее передаем этот же контекст в UseCase
 	ctx := r.Context()
 	reader := ctx.Value(middleware.ReaderContextKey("reader")).(io.Reader)
 
@@ -35,17 +39,26 @@ func (routes *loyaltyRoutes) PostRegUHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// Обнуляем поля, которые не должны прийти в запросе
+	User.ID = 0
+	User.Balance = 0
+
+	// Проверяем формат структуры и обязательные для заполнения поля
 	_, err = govalidator.ValidateStruct(User)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// id, err := h.services.Authorization.CreateUser(input)
-	// if err != nil {
-	// 	newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	// 	return
-	// }
+	_, err = routes.loyalty.PostRegUser(ctx, &entity.Loyalty{User: &User})
+	if err != nil {
+		if errors.Is(err, usecase.ErrLoginAlreadyTaken) {
+			http.Error(w, "login is already taken", http.StatusConflict)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", ApplicationJSON)
 	w.WriteHeader(http.StatusOK)

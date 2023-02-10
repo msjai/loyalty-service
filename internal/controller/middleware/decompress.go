@@ -11,6 +11,7 @@ type ReaderContextKey string
 
 const GZip = "gzip"
 
+// Decompress .-
 func Decompress(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var reader io.Reader
