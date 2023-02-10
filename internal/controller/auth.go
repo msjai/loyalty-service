@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/asaskevich/govalidator"
 
@@ -14,7 +15,7 @@ import (
 )
 
 type UserID struct {
-	Id string `json:"id"`
+	ID string `json:"id"`
 }
 
 // PostRegUHandler -.
@@ -50,7 +51,7 @@ func (routes *loyaltyRoutes) PostRegUHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	_, err = routes.loyalty.PostRegUser(ctx, &entity.Loyalty{User: &User})
+	loyalty, err := routes.loyalty.PostRegUser(ctx, &entity.Loyalty{User: &User})
 	if err != nil {
 		if errors.Is(err, usecase.ErrLoginAlreadyTaken) {
 			http.Error(w, "login is already taken", http.StatusConflict)
@@ -62,7 +63,7 @@ func (routes *loyaltyRoutes) PostRegUHandler(w http.ResponseWriter, r *http.Requ
 
 	w.Header().Set("Content-Type", ApplicationJSON)
 	w.WriteHeader(http.StatusOK)
-	response, err := json.Marshal(UserID{Id: "1"})
+	response, err := json.Marshal(UserID{ID: strconv.FormatInt(loyalty.User.ID, 10)})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

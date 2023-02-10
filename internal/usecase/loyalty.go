@@ -38,7 +38,7 @@ func (luc *LoyaltyUseCase) PostRegUser(ctx context.Context, loyalty *entity.Loya
 		return nil, fmt.Errorf("usecase - PostRegUser - AddNewUser: %w", err)
 	}
 
-	return nil, nil
+	return loyalty, nil
 }
 
 // PostLoginUser -.
