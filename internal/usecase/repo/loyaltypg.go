@@ -11,6 +11,7 @@ import (
 
 var (
 	ErrLoginAlreadyTaken = errors.New("login is already taken")
+	ErrInvalidLogPass    = errors.New("invalid username/password pair")
 	ErrConnectionNotOpen = errors.New("data base pgsql connection not opened")
 )
 
@@ -85,7 +86,7 @@ func (r *LoyaltyRepoS) FindUser(ctx context.Context, loyalty *entity.Loyalty) (*
 	row = stmt.QueryRowContext(ctx, loyalty.User.Login, loyalty.User.Password)
 	err = row.Scan(&id)
 	if err != nil {
-		return nil, handleInsertError(tx, err)
+		return nil, handleFindUserError(tx, err)
 	}
 
 	if err = tx.Commit(); err != nil {

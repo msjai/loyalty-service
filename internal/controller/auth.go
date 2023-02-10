@@ -15,7 +15,8 @@ import (
 )
 
 type UserID struct {
-	ID string `json:"id"`
+	ID    string `json:"id"`
+	Token string `json:"token"`
 }
 
 // clearUserFields -.
@@ -61,7 +62,7 @@ func (routes *loyaltyRoutes) PostRegUHandler(w http.ResponseWriter, r *http.Requ
 	loyalty, err := routes.loyalty.PostRegUser(ctx, &entity.Loyalty{User: &User})
 	if err != nil {
 		if errors.Is(err, usecase.ErrLoginAlreadyTaken) {
-			http.Error(w, "login is already taken", http.StatusConflict)
+			http.Error(w, usecase.ErrLoginAlreadyTaken.Error(), http.StatusConflict)
 			return
 		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -70,7 +71,7 @@ func (routes *loyaltyRoutes) PostRegUHandler(w http.ResponseWriter, r *http.Requ
 
 	w.Header().Set("Content-Type", ApplicationJSON)
 	w.WriteHeader(http.StatusOK)
-	response, err := json.Marshal(UserID{ID: strconv.FormatInt(loyalty.User.ID, 10)})
+	response, err := json.Marshal(UserID{ID: strconv.FormatInt(loyalty.User.ID, 10), Token: loyalty.User.Token})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -113,8 +114,8 @@ func (routes *loyaltyRoutes) PostLogUHandler(w http.ResponseWriter, r *http.Requ
 
 	loyalty, err := routes.loyalty.PostLoginUser(ctx, &entity.Loyalty{User: &User})
 	if err != nil {
-		if errors.Is(err, usecase.ErrLoginAlreadyTaken) {
-			http.Error(w, "login is already taken", http.StatusConflict)
+		if errors.Is(err, usecase.ErrInvalidLogPass) {
+			http.Error(w, usecase.ErrInvalidLogPass.Error(), http.StatusUnauthorized)
 			return
 		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -123,7 +124,7 @@ func (routes *loyaltyRoutes) PostLogUHandler(w http.ResponseWriter, r *http.Requ
 
 	w.Header().Set("Content-Type", ApplicationJSON)
 	w.WriteHeader(http.StatusOK)
-	response, err := json.Marshal(UserID{ID: strconv.FormatInt(loyalty.User.ID, 10)})
+	response, err := json.Marshal(UserID{ID: strconv.FormatInt(loyalty.User.ID, 10), Token: loyalty.User.Token})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
