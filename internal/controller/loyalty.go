@@ -1,7 +1,10 @@
 package controller
 
 import (
+	"errors"
+	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/go-chi/chi/v5"
@@ -9,6 +12,7 @@ import (
 
 	"github.com/msjai/loyalty-service/internal/config"
 	"github.com/msjai/loyalty-service/internal/controller/middleware"
+	"github.com/msjai/loyalty-service/internal/entity"
 	"github.com/msjai/loyalty-service/internal/usecase"
 )
 
@@ -51,24 +55,23 @@ func newLoyaltyRoutes(router *chi.Mux, loyalty usecase.Loyalty, cfg *config.Conf
 	})
 
 	// Private Routes
-	// Only application/json request type accepted
+	// Only text/plain request type accepted
 	// Only gzip request encoding accepted
 	// If the client supports compression, the response will be compressed with gzip
 	router.Group(func(router chi.Router) {
 		router.Use(chiMW.AllowContentEncoding(GZip))
 		// Собственная функция AllowContentType чтобы отдавать ошибку 400 Bad request
-		router.Use(middleware.AllowContentType(ApplicationJSON))
+		router.Use(middleware.AllowContentType(TextPlain))
 		router.Use(middleware.Decompress)
 		router.Use(compress)
 		router.Use(middleware.IdentifyUser)
-
-		// router.Post("/api/user/orders", routes.PostUOrder)
-		router.Get("/api/user/orders", routes.GerUOrders)
-		//	router.Get("/api/user/balance", routes.GetUBalance)
-		//	router.Post("/api/user/balance/withdraw", routes.PostUWDBalance)
-		//	router.Get("/api/user/withdrawals", routes.GetUWD)
-
+		router.Post("/api/user/orders", routes.PostUOrder)
 	})
+
+	// router.Get("/api/user/orders", routes.GerUOrders)
+	//	router.Get("/api/user/balance", routes.GetUBalance)
+	//	router.Post("/api/user/balance/withdraw", routes.PostUWDBalance)
+	//	router.Get("/api/user/withdrawals", routes.GetUWD)
 
 	return router
 }
@@ -86,6 +89,47 @@ func defineCompression() func(http.Handler) http.Handler {
 	}
 
 	return compress
+}
+
+// PostUOrder -.
+func (routes *loyaltyRoutes) PostUOrder(w http.ResponseWriter, r *http.Request) {
+	// var UserOrder *entity.UserOrder
+	// Через контекст получаем reader
+	// В случае необходимости тело было распаковано в middleware
+	// Далее передаем этот же контекст в UseCase
+	ctx := r.Context()
+	reader := ctx.Value(middleware.KeyReader).(io.Reader)
+	userID := ctx.Value(middleware.KeyUserID).(int64)
+
+	b, err := io.ReadAll(reader)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	orderNumberS := string(b)
+	orderNumberI, err := strconv.Atoi(orderNumberS)
+	if err != nil {
+		http.Error(w, usecase.ErrInvalidOrderNumber.Error(), http.StatusUnprocessableEntity)
+	}
+	orderNumber := uint64(orderNumberI)
+
+	_, err = routes.loyalty.PostUserOrder(ctx, &entity.UserOrder{
+		UserID: userID,
+		Number: orderNumber,
+	})
+
+	if err != nil {
+		if errors.Is(err, usecase.ErrInvalidOrderNumber) {
+			http.Error(w, usecase.ErrInvalidOrderNumber.Error(), http.StatusUnprocessableEntity)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", ApplicationJSON)
+	w.WriteHeader(http.StatusOK)
 }
 
 // GerUOrders -.

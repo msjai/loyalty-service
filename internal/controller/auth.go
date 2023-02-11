@@ -13,11 +13,6 @@ import (
 	"github.com/msjai/loyalty-service/internal/usecase"
 )
 
-type UserID struct {
-	ID    string `json:"id"`
-	Token string `json:"token"`
-}
-
 // clearUserFields -.
 func clearUserFields(user *entity.User) *entity.User {
 	user.ID = 0
@@ -30,7 +25,7 @@ func clearUserFields(user *entity.User) *entity.User {
 func (routes *loyaltyRoutes) PostRegUHandler(w http.ResponseWriter, r *http.Request) {
 	var User entity.User
 	// Через контекст получаем reader
-	// В случае необхоимости тело было распаковано в middleware
+	// В случае необходимости тело было распаковано в middleware
 	// Далее передаем этот же контекст в UseCase
 	ctx := r.Context()
 	reader := ctx.Value(middleware.KeyReader).(io.Reader)
