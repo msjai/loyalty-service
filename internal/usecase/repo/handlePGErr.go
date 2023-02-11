@@ -47,13 +47,17 @@ func handleInsertOrderError(tx *sql.Tx, err error) error {
 	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 		// Отдаем ошибку исходную ошибку, о том что такой заказ уже есть
 		if rollbackERR != nil {
-			return fmt.Errorf("repo - AddOrder - Scan: %w - tx.Rollback(): %w", ErrOrderNumExists, rollbackERR)
+			return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w", err)
+			// на эту конструкцию ругается vet
+			// return fmt.Errorf("repo - AddOrder - Scan: %w - tx.Rollback(): %w", ErrOrderNumExists, rollbackERR)
 		}
 		return fmt.Errorf("repo - AddOrder - Scan: %w", ErrOrderNumExists)
 	}
 	// Отдаем исходную ошибку, если она не про уникальность логина
 	if rollbackERR != nil {
-		return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w- tx.Rollback(): %w", err, rollbackERR)
+		return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w", err)
+		// на эту конструкцию ругается vet
+		// return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w- tx.Rollback(): %w", err, rollbackERR)
 	}
 	return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w", err)
 }
@@ -61,7 +65,9 @@ func handleInsertOrderError(tx *sql.Tx, err error) error {
 func handleFindOrderError(tx *sql.Tx, err error) error {
 	// Здесь err только для условия отката транзакции, не перезаписывает исходную ошибку
 	if rollbackERR := tx.Rollback(); rollbackERR != nil {
-		return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w- tx.Rollback(): %w", err, rollbackERR)
+		return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w", err)
+		// на эту конструкцию ругается vet
+		// return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w- tx.Rollback(): %w", err, rollbackERR)
 	}
 
 	return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w", err)
