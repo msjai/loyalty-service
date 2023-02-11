@@ -8,13 +8,13 @@ CREATE TABLE IF NOT EXISTS users(
 CREATE TABLE IF NOT EXISTS orders
 (
     id          SERIAL PRIMARY KEY,
-    number      VARCHAR NOT NULL UNIQUE,
+    number      BIGINT NOT NULL UNIQUE,
     status      VARCHAR NOT NULL,
     user_id     INTEGER NOT NULL
         CONSTRAINT orders_users_id_fk
             REFERENCES users  ON UPDATE CASCADE ON delete CASCADE,
 
-    accrual_sum NUMERIC,
+    accrual_sum NUMERIC DEFAULT 0,
     uploaded_at           DATE    NOT NULL
 );
 

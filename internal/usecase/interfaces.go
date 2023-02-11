@@ -23,6 +23,7 @@ type (
 		AddNewUser(context.Context, *entity.Loyalty) (*entity.Loyalty, error)
 		FindUser(context.Context, *entity.Loyalty) (*entity.Loyalty, error)
 		AddOrder(context.Context, *entity.UserOrder) (*entity.UserOrder, error)
+		FindOrder(context.Context, *entity.UserOrder) (*entity.UserOrder, error)
 	}
 
 	// LoyaltyWebAPI -.

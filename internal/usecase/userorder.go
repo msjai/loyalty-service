@@ -16,17 +16,27 @@ func (luc *LoyaltyUseCase) PostUserOrder(ctx context.Context, userOrder *entity.
 	}
 
 	userOrder, err := luc.repo.AddOrder(ctx, userOrder)
+	// var userIDInDB int64
 	if err != nil {
+		// Если заказ с таким номером уже существует в базе,
+		// то делаем повторный запрос, чтобы узнать ID пользователя, под которым был внесен заказ
 		if errors.Is(err, repo.ErrOrderNumExists) {
-			// Если заказ с таким номером уже существует в базе,
-			// то делаем повторный запрос, чтобы узнать ID пользователя, под которым был внесен заказ
-
-			return nil, fmt.Errorf("usecase - PostRegUser - AddNewUser: %w", ErrLoginAlreadyTaken)
+			userOrder, err = luc.repo.FindOrder(ctx, userOrder)
+			if err != nil {
+				if errors.Is(err, repo.ErrOrderAlreadyRegByAnotherUser) {
+					return nil, fmt.Errorf("usecase - PostUserOrder - FindOrder: %w", ErrOrderAlreadyRegByAnotherUser)
+				}
+				if errors.Is(err, repo.ErrOrderAlreadyRegByCurrUser) {
+					return nil, fmt.Errorf("usecase - PostUserOrder - FindOrder: %w", ErrOrderAlreadyRegByCurrUser)
+				}
+				return nil, fmt.Errorf("usecase - PostUserOrder - FindOrder: %w", err)
+			}
+			return userOrder, nil
 		}
-		return nil, fmt.Errorf("usecase - PostRegUser - AddNewUser: %w", err)
+		return nil, fmt.Errorf("usecase - PostUserOrder - AddOrder: %w", err)
 	}
 
-	return nil, nil
+	return userOrder, nil
 }
 
 // GetUserOrders -.

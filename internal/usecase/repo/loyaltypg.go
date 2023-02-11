@@ -9,7 +9,12 @@ var (
 	ErrLoginAlreadyTaken = errors.New("login is already taken")
 	ErrInvalidLogPass    = errors.New("invalid username/password pair")
 	ErrConnectionNotOpen = errors.New("data base pgsql connection not opened")
-	ErrOrderNumExists    = errors.New("order already exists")
+
+	// ErrOrderNumExists - Если получили эту ошибку, то делаем повторный запрос,
+	// чтобы выяснить ID пользователя, под которым заказ был уже зарегистрирован
+	ErrOrderNumExists               = errors.New("order already exists")
+	ErrOrderAlreadyRegByAnotherUser = errors.New("order already registered by another user")
+	ErrOrderAlreadyRegByCurrUser    = errors.New("order already registered by current user")
 )
 
 // LoyaltyRepoS -.

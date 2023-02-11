@@ -124,12 +124,24 @@ func (routes *loyaltyRoutes) PostUOrder(w http.ResponseWriter, r *http.Request) 
 			http.Error(w, usecase.ErrInvalidOrderNumber.Error(), http.StatusUnprocessableEntity)
 			return
 		}
+
+		if errors.Is(err, usecase.ErrOrderAlreadyRegByAnotherUser) {
+			http.Error(w, usecase.ErrOrderAlreadyRegByAnotherUser.Error(), http.StatusConflict)
+			return
+		}
+
+		if errors.Is(err, usecase.ErrOrderAlreadyRegByCurrUser) {
+			w.Header().Set("Content-Type", ApplicationJSON)
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", ApplicationJSON)
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusAccepted)
 }
 
 // GerUOrders -.

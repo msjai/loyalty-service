@@ -77,5 +77,6 @@ func (r *LoyaltyRepoS) FindUser(ctx context.Context, loyalty *entity.Loyalty) (*
 	}
 
 	loyalty.User.ID = id
+
 	return loyalty, nil
 }
