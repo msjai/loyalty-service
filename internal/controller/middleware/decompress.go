@@ -7,7 +7,9 @@ import (
 	"net/http"
 )
 
-type ReaderContextKey string
+type KeyForReader string
+
+var KeyReader KeyForReader = "reader"
 
 const GZip = "gzip"
 
@@ -27,8 +29,9 @@ func Decompress(next http.Handler) http.Handler {
 			reader = r.Body
 		}
 
-		k := ReaderContextKey("reader")
-		ctx := context.WithValue(r.Context(), k, reader)
+		// var k KeyForReader
+		// k = "reader"
+		ctx := context.WithValue(r.Context(), KeyReader, reader)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

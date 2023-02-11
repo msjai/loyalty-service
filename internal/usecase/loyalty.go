@@ -7,16 +7,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
-
 	"github.com/msjai/loyalty-service/internal/config"
 	"github.com/msjai/loyalty-service/internal/entity"
 	"github.com/msjai/loyalty-service/internal/usecase/repo"
 )
 
 var (
-	ErrLoginAlreadyTaken = errors.New("login is already taken")
-	ErrInvalidLogPass    = errors.New("invalid username/password pair")
+	ErrLoginAlreadyTaken    = errors.New("login is already taken")
+	ErrInvalidLogPass       = errors.New("invalid username/password pair")
+	ErrInvalidSigningMethod = errors.New("invalid signing method")
 )
 
 const (
@@ -30,11 +29,6 @@ type LoyaltyUseCase struct {
 	repo   LoyaltyRepo
 	webAPI LoyaltyWebAPI
 	cfg    *config.Config
-}
-
-type tokenClaims struct {
-	jwt.StandardClaims
-	UserId int64 `json:"user_id"`
 }
 
 // New -.
@@ -68,19 +62,10 @@ func (luc *LoyaltyUseCase) PostRegUser(ctx context.Context, loyalty *entity.Loya
 		return nil, fmt.Errorf("usecase - PostRegUser - AddNewUser: %w", err)
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(tokenTL).Unix(),
-			IssuedAt:  time.Now().Unix(),
-		},
-		UserId: loyalty.User.ID,
-	})
-
-	t, err := token.SignedString([]byte(signTokenKey))
+	loyalty.User.Token, err = getToken(loyalty)
 	if err != nil {
-		return nil, fmt.Errorf("usecase - PostLoginUser - SignedString: %w", err)
+		return nil, fmt.Errorf("usecase - PostRegUser - getToken: %w", err)
 	}
-	loyalty.User.Token = t
 
 	return loyalty, nil
 }
@@ -97,19 +82,10 @@ func (luc *LoyaltyUseCase) PostLoginUser(ctx context.Context, loyalty *entity.Lo
 		return nil, fmt.Errorf("usecase - PostLoginUser - FindUser: %w", err)
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(tokenTL).Unix(),
-			IssuedAt:  time.Now().Unix(),
-		},
-		UserId: loyalty.User.ID,
-	})
-
-	t, err := token.SignedString([]byte(signTokenKey))
+	loyalty.User.Token, err = getToken(loyalty)
 	if err != nil {
-		return nil, fmt.Errorf("usecase - PostLoginUser - SignedString: %w", err)
+		return nil, fmt.Errorf("usecase - PostLoginUser - getToken: %w", err)
 	}
-	loyalty.User.Token = t
 
 	return loyalty, nil
 }

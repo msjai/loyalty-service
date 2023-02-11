@@ -30,12 +30,11 @@ func clearUserFields(user *entity.User) *entity.User {
 // PostRegUHandler -.
 func (routes *loyaltyRoutes) PostRegUHandler(w http.ResponseWriter, r *http.Request) {
 	var User entity.User
-
 	// Через контекст получаем reader
 	// В случае необхоимости тело было распаковано в middleware
 	// Далее передаем этот же контекст в UseCase
 	ctx := r.Context()
-	reader := ctx.Value(middleware.ReaderContextKey("reader")).(io.Reader)
+	reader := ctx.Value(middleware.KeyReader).(io.Reader)
 
 	b, err := io.ReadAll(reader)
 	if err != nil {
@@ -84,12 +83,13 @@ func (routes *loyaltyRoutes) PostRegUHandler(w http.ResponseWriter, r *http.Requ
 // PostLogUHandler -.
 func (routes *loyaltyRoutes) PostLogUHandler(w http.ResponseWriter, r *http.Request) {
 	var User entity.User
-
 	// Через контекст получаем reader
 	// В случае необхоимости тело было распаковано в middleware
 	// Далее передаем этот же контекст в UseCase
+	// var k middleware.KeyForReader
+	// k = "reader"
 	ctx := r.Context()
-	reader := ctx.Value(middleware.ReaderContextKey("reader")).(io.Reader)
+	reader := ctx.Value(middleware.KeyReader).(io.Reader)
 
 	b, err := io.ReadAll(reader)
 	if err != nil {
