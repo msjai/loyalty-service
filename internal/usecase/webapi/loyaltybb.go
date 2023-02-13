@@ -69,7 +69,9 @@ func (wa *LoyaltyWebAPI) RefreshOrderInfo(userOrder *entity.UserOrder) (*entity.
 		}
 
 		l.Infof("sleeping for %v seconds", timeToWait)
+		wa.cfg.Sig = make(chan struct{})
 		time.Sleep(time.Second * time.Duration(timeToWait))
+		close(wa.cfg.Sig)
 	}
 
 	if response.StatusCode == http.StatusInternalServerError {
@@ -77,7 +79,7 @@ func (wa *LoyaltyWebAPI) RefreshOrderInfo(userOrder *entity.UserOrder) (*entity.
 	}
 
 	if response.StatusCode == http.StatusNoContent {
-		// l.Debugf("webapi - RefreshOrderInfo - response.StatusCode: %v - order: %v", http.StatusNoContent, *userOrder)
+		l.Debugf("webapi - RefreshOrderInfo - response.StatusCode: %v - order: %v", http.StatusNoContent, *userOrder)
 	}
 
 	return userOrder, nil
