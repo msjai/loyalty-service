@@ -22,7 +22,8 @@ type Config struct {
 	DataBaseURI          string             // Адрес подключения к базе данных:
 	AccrualSystemAddress string             // Адрес системы расчёта начислений
 	L                    *zap.SugaredLogger // Логгер
-	sig                  chan struct{}
+	Sig                  chan struct{}
+	Done                 chan struct{}
 }
 
 // New returns app config
@@ -66,7 +67,7 @@ func New() (*Config, error) {
 
 	chSig := make(chan struct{})
 	close(chSig)
-	cfg.sig = chSig
+	cfg.Sig = chSig
 
 	return cfg, nil
 }

@@ -60,7 +60,7 @@ func (wa *LoyaltyWebAPI) RefreshOrderInfo(userOrder *entity.UserOrder) (*entity.
 			l.Errorf("webapi - RefreshOrderInfo - io.ReadAll: %v", err.Error())
 		}
 
-		l.Errorf("webapi - RefreshOrderInfo - json.Unmarshal: %v", err.Error())
+		l.Errorf("webapi - RefreshOrderInfo - response: %v", http.StatusTooManyRequests)
 
 		timeToWait, err := strconv.Atoi(string(b))
 		if err != nil {
@@ -77,7 +77,7 @@ func (wa *LoyaltyWebAPI) RefreshOrderInfo(userOrder *entity.UserOrder) (*entity.
 	}
 
 	if response.StatusCode == http.StatusNoContent {
-		l.Infof("webapi - RefreshOrderInfo - response.StatusCode: %v - order: %v", http.StatusNoContent, *userOrder)
+		// l.Debugf("webapi - RefreshOrderInfo - response.StatusCode: %v - order: %v", http.StatusNoContent, *userOrder)
 	}
 
 	return userOrder, nil

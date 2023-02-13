@@ -28,13 +28,12 @@ func (luc *LoyaltyUseCase) RefreshOrderInfo(userOrder *entity.UserOrder) (*entit
 
 	// Если статус обновился, обновляем запись в базе
 	if oldStatus != userOrder.Status {
-		userOrder, err = luc.RefreshOrderInfo(userOrder)
+		// userOrder, err = luc.RefreshOrderInfo(userOrder)
+		userOrder, err = luc.repo.UpdateOrder(userOrder)
 		if err != nil {
-			return userOrder, fmt.Errorf("usecase - RefreshOrderInfo - RefreshOrderInfo: %w", err)
+			return userOrder, fmt.Errorf("usecase - RefreshOrderInfo - repo.UpdateOrder: %w", err)
 		}
 	}
-
-	// После получения инфо по заказу из черного ящика, необходимо обновить информацию по заказу в базе
 
 	return userOrder, nil
 }

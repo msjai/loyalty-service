@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -51,7 +50,7 @@ func (routes *loyaltyRoutes) PostUOrder(w http.ResponseWriter, r *http.Request) 
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(orderAlreadyRegByCurrentU)) //nolint:errcheck
 			// Здесь идем в черный ящик, получаем инфо по заказу в системе начисления баллов
-			go routes.refreshOrdersInfo(ctx)
+			// go routes.refreshOrdersInfo()
 			return
 		}
 
@@ -62,26 +61,54 @@ func (routes *loyaltyRoutes) PostUOrder(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", ApplicationJSON)
 	w.WriteHeader(http.StatusAccepted)
 	// Здесь идем в черный ящик, получаем инфо по заказу в системе начисления баллов
-	go routes.refreshOrdersInfo(ctx)
+	// go routes.refreshOrdersInfo()
 }
 
 // refreshOrdersInfo - Функция инициирует обновление информации по заказам, статусы по которым не окончательные.
 // Функция обращается к уровню usecase.
 // Далее по каждому заказу из списка инициируется обновление статуса
-func (routes *loyaltyRoutes) refreshOrdersInfo(ctx context.Context) {
-	l := routes.cfg.L
-	// ctxRefresh, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	// defer cancel()
+func (routes *loyaltyRoutes) refreshOrdersInfo() {
+	// Воркер работает в цикле,пока не получит сигнал заснуть
+	// Или пока не получит сигнал остановиться
+	for {
+		select {
+		case <-routes.cfg.Done:
+			// Если требуется завершить работу воркера, послыаем данные в канал
+			return
+		default:
+			// Читаем из закрытого канала.
+			// Если требуется остановить, то открываем пустой канал (операция становится блокирующей)
+			<-routes.cfg.Sig
 
-	orders, err := routes.loyalty.CatchOrdersRefresh()
-	if err != nil {
-		l.Errorf("repo - CatchOrdersRefresh - repo.Begin: %w", err)
+			l := routes.cfg.L
+
+			orders, err := routes.loyalty.CatchOrdersRefresh()
+			if err != nil {
+				l.Errorf("controller - refreshOrdersInfo - CatchOrdersRefresh: %w", err)
+			}
+
+			for _, order := range orders {
+				_, err = routes.loyalty.RefreshOrderInfo(order)
+				if err != nil {
+					l.Errorf("controller - refreshOrdersInfo - loyalty.RefreshOrderInfo: %w", err)
+				}
+			}
+		}
 	}
 
-	for _, order := range orders {
-		routes.loyalty.RefreshOrderInfo(order)
-	}
-
+	// l := routes.cfg.L
+	//
+	// orders, err := routes.loyalty.CatchOrdersRefresh()
+	// if err != nil {
+	// 	l.Errorf("controller - refreshOrdersInfo - CatchOrdersRefresh: %w", err)
+	// }
+	//
+	// for _, order := range orders {
+	// 	_, err = routes.loyalty.RefreshOrderInfo(order)
+	// 	if err != nil {
+	// 		l.Errorf("controller - refreshOrdersInfo - loyalty.RefreshOrderInfo: %w", err)
+	// 	}
+	// }
 }
 
 // GerUOrders -.
