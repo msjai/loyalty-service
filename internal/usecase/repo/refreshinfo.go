@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -11,7 +10,7 @@ import (
 
 // CatchOrdersRefresh - Функция получает из базы заказы, статус по которым не является окончательным.
 // Это все статусы, кроме (PROCESSING, INVALID)
-func (r *LoyaltyRepoS) CatchOrdersRefresh(ctx context.Context) ([]*entity.UserOrder, error) {
+func (r *LoyaltyRepoS) CatchOrdersRefresh() ([]*entity.UserOrder, error) {
 	if r.repo == nil {
 		return nil, fmt.Errorf("repo - CatchOrdersRefresh - repo: %w", ErrConnectionNotOpen)
 	}
@@ -61,7 +60,7 @@ func (r *LoyaltyRepoS) CatchOrdersRefresh(ctx context.Context) ([]*entity.UserOr
 	return orders, nil
 }
 
-func (r *LoyaltyRepoS) UpdateOrder(ctx context.Context, userOrder *entity.UserOrder) (*entity.UserOrder, error) {
+func (r *LoyaltyRepoS) UpdateOrder(userOrder *entity.UserOrder) (*entity.UserOrder, error) {
 	if r.repo == nil {
 		return nil, fmt.Errorf("repo - AddOrder - repo: %w", ErrConnectionNotOpen)
 	}
@@ -71,10 +70,7 @@ func (r *LoyaltyRepoS) UpdateOrder(ctx context.Context, userOrder *entity.UserOr
 		return nil, fmt.Errorf("repo - UpdateOrder - repo.Begin: %w", err)
 	}
 
-	ctxUpdate, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	stmt, err := tx.PrepareContext(ctxUpdate, `UPDATE orders SET status=$1, accrual_sum =$2 WHERE number=$3 RETURNING id, number, status, user_id, accrual_sum, uploaded_at`)
+	stmt, err := tx.Prepare(`UPDATE orders SET status=$1, accrual_sum =$2 WHERE number=$3 RETURNING id, number, status, user_id, accrual_sum, uploaded_at`)
 	if err != nil {
 		return nil, fmt.Errorf("repo - UpdateOrder - tx.PrepareContext: %w", err)
 	}
@@ -90,7 +86,7 @@ func (r *LoyaltyRepoS) UpdateOrder(ctx context.Context, userOrder *entity.UserOr
 		uploadedAt time.Time
 	)
 
-	row = stmt.QueryRowContext(ctxUpdate, userOrder.Status, userOrder.AccrualSum, userOrder.Number)
+	row = stmt.QueryRow(userOrder.Status, userOrder.AccrualSum, userOrder.Number)
 	err = row.Scan(&id, &number, &status, &userID, &accrualSUM, &uploadedAt)
 	if err != nil {
 		if errRollBack := tx.Rollback(); errRollBack != nil {

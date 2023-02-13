@@ -1,7 +1,6 @@
 package webapi
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -24,13 +23,13 @@ func New(config *config.Config) *LoyaltyWebAPI {
 }
 
 // RefreshOrderInfo - Функция получает информацию из черного ящика по 1 определенному заказу
-func (wa *LoyaltyWebAPI) RefreshOrderInfo(ctx context.Context, userOrder *entity.UserOrder) (*entity.UserOrder, error) {
+func (wa *LoyaltyWebAPI) RefreshOrderInfo(userOrder *entity.UserOrder) (*entity.UserOrder, error) {
 	l := wa.cfg.L
 
-	ctxGet, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	// ctxGet, cancel := context.WithCancel(context.Background())
+	// defer cancel()
 
-	request, err := http.NewRequestWithContext(ctxGet, http.MethodGet, "http://"+wa.cfg.AccrualSystemAddress+"/api/orders/"+fmt.Sprint(userOrder.Number), nil)
+	request, err := http.NewRequest(http.MethodGet, "http://"+wa.cfg.AccrualSystemAddress+"/api/orders/"+fmt.Sprint(userOrder.Number), nil)
 	if err != nil {
 		l.Errorf("webapi - RefreshOrderInfo - NewRequestWithContext: %v", err.Error())
 	}
