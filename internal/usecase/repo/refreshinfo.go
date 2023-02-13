@@ -12,9 +12,6 @@ import (
 // CatchOrdersRefresh - Функция получает из базы заказы, статус по которым не является окончательным.
 // Это все статусы, кроме (PROCESSING, INVALID)
 func (r *LoyaltyRepoS) CatchOrdersRefresh(ctx context.Context) ([]*entity.UserOrder, error) {
-	ctxCatch, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	if r.repo == nil {
 		return nil, fmt.Errorf("repo - CatchOrdersRefresh - repo: %w", ErrConnectionNotOpen)
 	}
@@ -24,35 +21,41 @@ func (r *LoyaltyRepoS) CatchOrdersRefresh(ctx context.Context) ([]*entity.UserOr
 		return nil, fmt.Errorf("repo - CatchOrdersRefresh - repo.Begin: %w", err)
 	}
 
-	stmt, err := tx.PrepareContext(ctxCatch, `SELECT id, number, status, user_id, accrual_sum, uploaded_at FROM orders WHERE status<>$1 and status<>$2`)
+	stmt, err := tx.Prepare(`SELECT id, number, status, user_id, accrual_sum, uploaded_at FROM orders WHERE status<>$1 and status<>$2`) // WHERE status<>$1 and status<>$2`)
 	if err != nil {
 		return nil, fmt.Errorf("repo - CatchOrdersRefresh - tx.PrepareContext: %w", err)
 	}
 	defer stmt.Close()
 
-	var (
-		row        *sql.Row
-		id         int64
-		number     string
-		status     string
-		userID     int64
-		accrualSUM float64
-		uploadedAt time.Time
-		orders     []*entity.UserOrder
-	)
+	var orders []*entity.UserOrder
 
-	row = stmt.QueryRowContext(ctxCatch, entity.PROCESSED, entity.INVALID)
-	err = row.Scan(&id, &number, &status, &userID, &accrualSUM, &uploadedAt)
+	rows, err := stmt.Query(entity.PROCESSED, entity.INVALID)
 	if err != nil {
-		if errRollBack := tx.Rollback(); err != nil {
-			return orders, fmt.Errorf("repo - CatchOrdersRefresh - row.Scan: %w - tx.RollBack(): %v", err, errRollBack)
+		return orders, fmt.Errorf("repo - CatchOrdersRefresh - stmt.QueryContext: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var userOrder entity.UserOrder
+		err = rows.Scan(&userOrder.ID, &userOrder.Number, &userOrder.Status, &userOrder.UserID, &userOrder.AccrualSum, &userOrder.UploadedAt)
+		if err != nil {
+			if errRollBack := tx.Rollback(); err != nil {
+				return orders, fmt.Errorf("repo - CatchOrdersRefresh - row.Scan: %w - tx.RollBack(): %v", err, errRollBack)
+			}
+
+			return orders, fmt.Errorf("repo - CatchOrdersRefresh - row.Scan: %w", err)
 		}
 
-		return orders, fmt.Errorf("repo - CatchOrdersRefresh - row.Scan: %w", err)
+		orders = append(orders, &userOrder)
 	}
 
 	if err = tx.Commit(); err != nil {
-		return orders, fmt.Errorf("repo - FindOrder - tx.Commit: %w", err)
+		return orders, fmt.Errorf("repo - CatchOrdersRefresh - tx.Commit: %w", err)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return orders, fmt.Errorf("repo - CatchOrdersRefresh - rows.Err(): %w", err)
 	}
 
 	return orders, nil

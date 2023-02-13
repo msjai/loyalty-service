@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/msjai/loyalty-service/internal/config"
 	"github.com/msjai/loyalty-service/internal/entity"
@@ -30,27 +32,53 @@ func (wa *LoyaltyWebAPI) RefreshOrderInfo(ctx context.Context, userOrder *entity
 
 	request, err := http.NewRequestWithContext(ctxGet, http.MethodGet, "http://"+wa.cfg.AccrualSystemAddress+"/api/orders/"+fmt.Sprint(userOrder.Number), nil)
 	if err != nil {
-		l.Infof("controller - getOrderInfo - NewRequestWithContext: %v", err)
+		l.Errorf("webapi - RefreshOrderInfo - NewRequestWithContext: %v", err.Error())
 	}
 	request.Header.Set("Accept", "application/json")
 
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
-		l.Infof("controller - getOrderInfo - DefaultClient.Do: %v", err)
+		l.Errorf("webapi - RefreshOrderInfo - DefaultClient.Do: %v", err.Error())
 	}
 	defer response.Body.Close()
 
-	b, err := io.ReadAll(response.Body)
-	if err != nil {
-		l.Infof("controller - getOrderInfo - io.ReadAll: %v", err)
+	if response.StatusCode == http.StatusOK {
+		b, err := io.ReadAll(response.Body)
+		if err != nil {
+			l.Errorf("webapi - RefreshOrderInfo - io.ReadAll: %v", err.Error())
+		}
+
+		err = json.Unmarshal(b, &userOrder)
+		if err != nil {
+			l.Errorf("webapi - RefreshOrderInfo - json.Unmarshal: %v", err.Error())
+		}
 	}
 
-	err = json.Unmarshal(b, &userOrder)
-	if err != nil {
-		l.Infof("controller - getOrderInfo - json.Unmarshal: %v", err)
+	if response.StatusCode == http.StatusTooManyRequests {
+		b, err := io.ReadAll(response.Body)
+		if err != nil {
+			l.Errorf("webapi - RefreshOrderInfo - io.ReadAll: %v", err.Error())
+		}
+
+		l.Errorf("webapi - RefreshOrderInfo - json.Unmarshal: %v", err.Error())
+
+		timeToWait, err := strconv.Atoi(string(b))
+		if err != nil {
+			l.Errorf("webapi - RefreshOrderInfo - strconv.Atoi: %v", err.Error())
+			timeToWait = 10
+		}
+
+		l.Infof("sleeping for %v seconds", timeToWait)
+		time.Sleep(time.Second * time.Duration(timeToWait))
 	}
 
-	l.Info(userOrder)
+	if response.StatusCode == http.StatusInternalServerError {
+		l.Infof("webapi - RefreshOrderInfo - response.StatusCode: %v", http.StatusInternalServerError)
+	}
+
+	if response.StatusCode == http.StatusNoContent {
+		l.Infof("webapi - RefreshOrderInfo - response.StatusCode: %v - order: %v", http.StatusNoContent, *userOrder)
+	}
 
 	return userOrder, nil
 }
