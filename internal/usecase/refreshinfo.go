@@ -24,12 +24,15 @@ func (luc *LoyaltyUseCase) RefreshOrderInfo(ctx context.Context, userOrder *enti
 	oldStatus := userOrder.Status
 	userOrder, err := luc.webAPI.RefreshOrderInfo(ctx, userOrder)
 	if err != nil {
-		return userOrder, fmt.Errorf("usecase - GetOrderInfo - webAPI.GetOrderInfo: %w", err)
+		return userOrder, fmt.Errorf("usecase - RefreshOrderInfo - webAPI.RefreshOrderInfo: %w", err)
 	}
 
 	// Если статус обновился, обновляем запись в базе
 	if oldStatus != userOrder.Status {
-		userOrder, err = luc.repo.UpdateOrder(ctx, userOrder)
+		userOrder, err = luc.RefreshOrderInfo(ctx, userOrder)
+		if err != nil {
+			return userOrder, fmt.Errorf("usecase - RefreshOrderInfo - RefreshOrderInfo: %w", err)
+		}
 	}
 
 	// После получения инфо по заказу из черного ящика, необходимо обновить информацию по заказу в базе

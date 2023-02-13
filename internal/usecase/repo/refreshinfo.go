@@ -39,7 +39,7 @@ func (r *LoyaltyRepoS) CatchOrdersRefresh(ctx context.Context) ([]*entity.UserOr
 		var userOrder entity.UserOrder
 		err = rows.Scan(&userOrder.ID, &userOrder.Number, &userOrder.Status, &userOrder.UserID, &userOrder.AccrualSum, &userOrder.UploadedAt)
 		if err != nil {
-			if errRollBack := tx.Rollback(); err != nil {
+			if errRollBack := tx.Rollback(); errRollBack != nil {
 				return orders, fmt.Errorf("repo - CatchOrdersRefresh - row.Scan: %w - tx.RollBack(): %v", err, errRollBack)
 			}
 
@@ -93,7 +93,7 @@ func (r *LoyaltyRepoS) UpdateOrder(ctx context.Context, userOrder *entity.UserOr
 	row = stmt.QueryRowContext(ctxUpdate, userOrder.Status, userOrder.AccrualSum, userOrder.Number)
 	err = row.Scan(&id, &number, &status, &userID, &accrualSUM, &uploadedAt)
 	if err != nil {
-		if errRollBack := tx.Rollback(); err != nil {
+		if errRollBack := tx.Rollback(); errRollBack != nil {
 			return userOrder, fmt.Errorf("repo - UpdateOrder - row.Scan: %w - tx.RollBack(): %v", err, errRollBack)
 		}
 
