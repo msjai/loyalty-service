@@ -52,7 +52,7 @@ func (routes *loyaltyRoutes) PostUOrder(w http.ResponseWriter, r *http.Request) 
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(orderAlreadyRegByCurrentU)) //nolint:errcheck
 			// Здесь идем в черный ящик, получаем инфо по заказу в системе начисления баллов
-			go routes.refreshOrdersInfo(ctx)
+			//	go routes.refreshOrdersInfo(ctx)
 			return
 		}
 
@@ -63,7 +63,7 @@ func (routes *loyaltyRoutes) PostUOrder(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", ApplicationJSON)
 	w.WriteHeader(http.StatusAccepted)
 	// Здесь идем в черный ящик, получаем инфо по заказу в системе начисления баллов
-	go routes.refreshOrdersInfo(ctx)
+	// go routes.refreshOrdersInfo(ctx)
 }
 
 // refreshOrdersInfo - Функция инициирует обновление информации по заказам, статусы по которым не окончательные.
