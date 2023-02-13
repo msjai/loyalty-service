@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/msjai/loyalty-service/internal/entity"
 	"github.com/msjai/loyalty-service/internal/usecase/repo"
@@ -11,7 +12,8 @@ import (
 
 // PostUserOrder -.
 func (luc *LoyaltyUseCase) PostUserOrder(ctx context.Context, userOrder *entity.UserOrder) (*entity.UserOrder, error) {
-	if !ValidOrderNumber(userOrder.Number) {
+	uintNumber, _ := strconv.ParseUint(userOrder.Number, 10, 64)
+	if !ValidOrderNumber(uintNumber) {
 		return nil, fmt.Errorf("usecase - PostUserOrder - validNumber: %w", ErrInvalidOrderNumber)
 	}
 

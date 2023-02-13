@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users(
 CREATE TABLE IF NOT EXISTS orders
 (
     id          SERIAL PRIMARY KEY,
-    number      BIGINT NOT NULL UNIQUE,
+    number      VARCHAR NOT NULL UNIQUE,
     status      VARCHAR NOT NULL,
     user_id     INTEGER NOT NULL
         CONSTRAINT orders_users_id_fk

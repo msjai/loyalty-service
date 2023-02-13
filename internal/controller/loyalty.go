@@ -1,10 +1,7 @@
 package controller
 
 import (
-	"errors"
-	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/go-chi/chi/v5"
@@ -12,7 +9,6 @@ import (
 
 	"github.com/msjai/loyalty-service/internal/config"
 	"github.com/msjai/loyalty-service/internal/controller/middleware"
-	"github.com/msjai/loyalty-service/internal/entity"
 	"github.com/msjai/loyalty-service/internal/usecase"
 )
 
@@ -89,75 +85,4 @@ func defineCompression() func(http.Handler) http.Handler {
 	}
 
 	return compress
-}
-
-// PostUOrder -.
-func (routes *loyaltyRoutes) PostUOrder(w http.ResponseWriter, r *http.Request) {
-	// var UserOrder *entity.UserOrder
-	// Через контекст получаем reader
-	// В случае необходимости тело было распаковано в middleware
-	// Далее передаем этот же контекст в UseCase
-	ctx := r.Context()
-	reader := ctx.Value(middleware.KeyReader).(io.Reader)
-	userID := ctx.Value(middleware.KeyUserID).(int64)
-
-	b, err := io.ReadAll(reader)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	orderNumberS := string(b)
-	orderNumberI, err := strconv.Atoi(orderNumberS)
-	if err != nil {
-		http.Error(w, usecase.ErrInvalidOrderNumber.Error(), http.StatusUnprocessableEntity)
-	}
-	orderNumber := uint64(orderNumberI)
-
-	_, err = routes.loyalty.PostUserOrder(ctx, &entity.UserOrder{
-		UserID: userID,
-		Number: orderNumber,
-	})
-
-	if err != nil {
-		if errors.Is(err, usecase.ErrInvalidOrderNumber) {
-			http.Error(w, usecase.ErrInvalidOrderNumber.Error(), http.StatusUnprocessableEntity)
-			return
-		}
-
-		if errors.Is(err, usecase.ErrOrderAlreadyRegByAnotherUser) {
-			http.Error(w, usecase.ErrOrderAlreadyRegByAnotherUser.Error(), http.StatusConflict)
-			return
-		}
-
-		if errors.Is(err, usecase.ErrOrderAlreadyRegByCurrUser) {
-			w.Header().Set("Content-Type", ApplicationJSON)
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", ApplicationJSON)
-	w.WriteHeader(http.StatusAccepted)
-}
-
-// GerUOrders -.
-func (routes *loyaltyRoutes) GerUOrders(w http.ResponseWriter, r *http.Request) {
-	// UserOrders := entity.Loyalty{
-	// 	UserID: "1",
-	// 	UserOrders: []entity.UserOrder{
-	// 		{Number: "1", Status: entity.NEW, Accrual: 100, UploadedAt: time.Now()},
-	// 		{Number: "2", Status: entity.NEW, Accrual: 100, UploadedAt: time.Now()},
-	// 		{Number: "3", Status: entity.NEW, Accrual: 100, UploadedAt: time.Now()},
-	// 	},
-	// }
-	//
-	// userorders, _ := json.Marshal(UserOrders)
-	//
-	// w.Header().Set("Content-Type", ApplicationJSON)
-	// w.WriteHeader(http.StatusOK)
-	// w.Write(userorders)
 }
