@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/msjai/loyalty-service/internal/controller/middleware"
 	"github.com/msjai/loyalty-service/internal/entity"
@@ -34,11 +33,11 @@ func (routes *loyaltyRoutes) PostUOrder(w http.ResponseWriter, r *http.Request) 
 
 	// TODO Убрать лишние преобразования, номер заказа теперь string
 	orderNumberS := string(b)
-	orderNumberI, err := strconv.Atoi(orderNumberS)
+	// orderNumberI, err := strconv.Atoi(orderNumberS)
 	if err != nil {
 		http.Error(w, usecase.ErrInvalidOrderNumber.Error(), http.StatusUnprocessableEntity)
 	}
-	orderNumber := uint64(orderNumberI)
+	// orderNumber := uint64(orderNumberI)
 
 	_, err = routes.loyalty.PostUserOrder(ctx, &entity.UserOrder{
 		UserID: userID,
@@ -61,7 +60,7 @@ func (routes *loyaltyRoutes) PostUOrder(w http.ResponseWriter, r *http.Request) 
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(orderAlreadyRegByCurrentU)) //nolint:errcheck
 			// Здесь идем в черный ящик, получаем инфо по заказу в системе начисления баллов
-			routes.getOrderInfo(ctx, orderNumber)
+			//	routes.getOrderInfo(ctx, orderNumber)
 			return
 		}
 
@@ -72,10 +71,11 @@ func (routes *loyaltyRoutes) PostUOrder(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", ApplicationJSON)
 	w.WriteHeader(http.StatusAccepted)
 	// Здесь идем в черный ящик, получаем инфо по заказу в системе начисления баллов
-	routes.getOrderInfo(ctx, orderNumber)
+	//	routes.getOrderInfo(ctx, orderNumber)
 }
 
 func (routes *loyaltyRoutes) getOrderInfo(ctx context.Context, orderNumber uint64) {
+
 	l := routes.cfg.L
 	var userOrder entity.UserOrder
 
