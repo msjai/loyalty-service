@@ -34,9 +34,9 @@ func (routes *loyaltyRoutes) PostUOrder(w http.ResponseWriter, r *http.Request) 
 	// TODO Убрать лишние преобразования, номер заказа теперь string
 	orderNumberS := string(b)
 	// orderNumberI, err := strconv.Atoi(orderNumberS)
-	if err != nil {
-		http.Error(w, usecase.ErrInvalidOrderNumber.Error(), http.StatusUnprocessableEntity)
-	}
+	// if err != nil {
+	// 	http.Error(w, usecase.ErrInvalidOrderNumber.Error(), http.StatusUnprocessableEntity)
+	// }
 	// orderNumber := uint64(orderNumberI)
 
 	_, err = routes.loyalty.PostUserOrder(ctx, &entity.UserOrder{
