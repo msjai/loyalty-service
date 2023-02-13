@@ -29,7 +29,8 @@ func (wa *LoyaltyWebAPI) RefreshOrderInfo(userOrder *entity.UserOrder) (*entity.
 	// ctxGet, cancel := context.WithCancel(context.Background())
 	// defer cancel()
 
-	request, err := http.NewRequest(http.MethodGet, "http://"+wa.cfg.AccrualSystemAddress+"/api/orders/"+fmt.Sprint(userOrder.Number), nil)
+	//	request, err := http.NewRequest(http.MethodGet, "http://"+wa.cfg.AccrualSystemAddress+"/api/orders/"+fmt.Sprint(userOrder.Number), nil)
+	request, err := http.NewRequest(http.MethodGet, wa.cfg.AccrualSystemAddress+"/api/orders/"+fmt.Sprint(userOrder.Number), nil)
 	if err != nil {
 		l.Errorf("webapi - RefreshOrderInfo - NewRequestWithContext: %v", err.Error())
 	}
