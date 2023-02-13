@@ -21,19 +21,24 @@ func (r *LoyaltyRepoS) AddOrder(ctx context.Context, userOrder *entity.UserOrder
 	}
 
 	stmt, err := tx.PrepareContext(ctx, `INSERT INTO orders (number, status, user_id, uploaded_at)
-									           values ($1, $2, $3, $4) RETURNING id`)
+									           values ($1, $2, $3, $4) RETURNING id, number, status, user_id, accrual_sum, uploaded_at`)
 	if err != nil {
 		return nil, fmt.Errorf("repo - AddOrder - tx.PrepareContext: %w", err)
 	}
 	defer stmt.Close()
 
 	var (
-		row *sql.Row
-		id  int64
+		row        *sql.Row
+		id         int64
+		number     string
+		status     string
+		userID     int64
+		accrualSUM float64
+		uploadedAt time.Time
 	)
 
 	row = stmt.QueryRowContext(ctx, userOrder.Number, entity.NEW, userOrder.UserID, time.Now())
-	err = row.Scan(&id)
+	err = row.Scan(&id, &number, &status, &userID, &accrualSUM, &uploadedAt)
 	if err != nil {
 		return userOrder, handleInsertOrderError(tx, err)
 	}
@@ -43,6 +48,11 @@ func (r *LoyaltyRepoS) AddOrder(ctx context.Context, userOrder *entity.UserOrder
 	}
 
 	userOrder.ID = id
+	userOrder.Number = number
+	userOrder.Status = status
+	userOrder.UserID = userID
+	userOrder.AccrualSum = accrualSUM
+	userOrder.UploadedAt = uploadedAt
 
 	return userOrder, nil
 }

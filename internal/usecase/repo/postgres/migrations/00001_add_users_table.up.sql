@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS orders
             REFERENCES users  ON UPDATE CASCADE ON delete CASCADE,
 
     accrual_sum NUMERIC DEFAULT 0,
-    uploaded_at           DATE    NOT NULL
+    uploaded_at TIMESTAMP    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS writes_off
@@ -27,5 +27,5 @@ CREATE TABLE IF NOT EXISTS writes_off
         CONSTRAINT writes_off_users_id_fk
             REFERENCES users
             ON  UPDATE CASCADE ON DELETE CASCADE ,
-    date           DATE    NOT NULL
+    date           TIMESTAMP    NOT NULL
 );

@@ -16,6 +16,8 @@ type (
 		GetUserBalance(context.Context, *entity.Loyalty) (*entity.Loyalty, error)
 		PostUserWithDrawBalance(context.Context, *entity.Loyalty) (*entity.Loyalty, error)
 		GetUserWithdrawals(context.Context, *entity.Loyalty) (*entity.Loyalty, error)
+		RefreshOrderInfo(context.Context, *entity.UserOrder) (*entity.UserOrder, error)
+		CatchOrdersRefresh(context.Context) ([]*entity.UserOrder, error)
 	}
 
 	// LoyaltyRepo -.
@@ -24,10 +26,12 @@ type (
 		FindUser(context.Context, *entity.Loyalty) (*entity.Loyalty, error)
 		AddOrder(context.Context, *entity.UserOrder) (*entity.UserOrder, error)
 		FindOrder(context.Context, *entity.UserOrder) (*entity.UserOrder, error)
+		CatchOrdersRefresh(ctx context.Context) ([]*entity.UserOrder, error)
+		UpdateOrder(context.Context, *entity.UserOrder) (*entity.UserOrder, error)
 	}
 
 	// LoyaltyWebAPI -.
 	LoyaltyWebAPI interface {
-		GetOrderInfo(*entity.Loyalty) (*entity.Loyalty, error)
+		RefreshOrderInfo(context.Context, *entity.UserOrder) (*entity.UserOrder, error)
 	}
 )

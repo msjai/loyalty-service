@@ -26,22 +26,22 @@ func (luc *LoyaltyUseCase) PostUserOrder(ctx context.Context, userOrder *entity.
 			userOrder, err = luc.repo.FindOrder(ctx, userOrder)
 			if err != nil {
 				if errors.Is(err, repo.ErrOrderAlreadyRegByAnotherUser) {
-					return nil, fmt.Errorf("usecase - PostUserOrder - FindOrder: %w", ErrOrderAlreadyRegByAnotherUser)
+					return userOrder, fmt.Errorf("usecase - PostUserOrder - FindOrder: %w", ErrOrderAlreadyRegByAnotherUser)
 				}
 				if errors.Is(err, repo.ErrOrderAlreadyRegByCurrUser) {
-					return nil, fmt.Errorf("usecase - PostUserOrder - FindOrder: %w", ErrOrderAlreadyRegByCurrUser)
+					return userOrder, fmt.Errorf("usecase - PostUserOrder - FindOrder: %w", ErrOrderAlreadyRegByCurrUser)
 				}
-				return nil, fmt.Errorf("usecase - PostUserOrder - FindOrder: %w", err)
+				return userOrder, fmt.Errorf("usecase - PostUserOrder - FindOrder: %w", err)
 			}
 			return userOrder, nil
 		}
-		return nil, fmt.Errorf("usecase - PostUserOrder - AddOrder: %w", err)
+		return userOrder, fmt.Errorf("usecase - PostUserOrder - AddOrder: %w", err)
 	}
 
 	return userOrder, nil
 }
 
 // GetUserOrders -.
-func (luc *LoyaltyUseCase) GetUserOrders(context.Context, *entity.Loyalty) (*entity.Loyalty, error) {
+func (luc *LoyaltyUseCase) GetUserOrders(ctx context.Context, loyalty *entity.Loyalty) (*entity.Loyalty, error) {
 	return nil, nil
 }

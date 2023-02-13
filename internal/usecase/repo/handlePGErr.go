@@ -61,7 +61,7 @@ func handleInsertOrderError(tx *sql.Tx, err error) error {
 func handleFindOrderError(tx *sql.Tx, err error) error {
 	// Здесь err только для условия отката транзакции, не перезаписывает исходную ошибку
 	if rollbackERR := tx.Rollback(); rollbackERR != nil {
-		return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w- tx.Rollback(): %v", err, rollbackERR)
+		return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w - tx.Rollback(): %v", err, rollbackERR)
 	}
 
 	return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w", err)
