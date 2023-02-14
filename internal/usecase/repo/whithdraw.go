@@ -5,6 +5,7 @@ import (
 )
 
 func (r *LoyaltyRepoS) WithDraw(withDraw *entity.WithDraw) (*entity.WithDraw, error) {
+
 	// if r.repo == nil {
 	// 	return nil, fmt.Errorf("repo - AddOrder - repo: %w", ErrConnectionNotOpen)
 	// }

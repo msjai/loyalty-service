@@ -92,7 +92,6 @@ func newLoyaltyRoutes(router *chi.Mux, loyalty usecase.Loyalty, cfg *config.Conf
 		router.Post("/api/user/balance/withdraw", routes.PostUWithdraw) // 2 в разработке
 	})
 
-	//	router.Get("/api/user/balance", routes.GetUBalance)
 	//	router.Get("/api/user/withdrawals", routes.GetUWD)
 	go routes.refreshOrdersInfo()
 	return router
