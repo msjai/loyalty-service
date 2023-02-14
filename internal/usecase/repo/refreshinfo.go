@@ -85,14 +85,14 @@ func (r *LoyaltyRepoS) UpdateOrder(userOrder *entity.UserOrder) (*entity.UserOrd
 	}
 
 	// Здесь в одной транзакции увеличиваем баланс пользователя, в таблице users
-	stmt1, err := tx.Prepare(`UPDATE users SET balance=balance+$1 WHERE id=$2`)
+	stmt1, err := tx.Prepare(`UPDATE users SET balance=balance+$1 WHERE id=$2 RETURNING id`)
 	if err != nil {
 		return nil, fmt.Errorf("repo - UpdateOrder - tx.PrepareContext: %w", err)
 	}
 	defer stmt1.Close()
 
 	row = stmt1.QueryRow(userOrder.AccrualSum, userOrder.UserID)
-	err = row.Scan()
+	err = row.Scan(&userOrder.ID)
 	if err != nil {
 		if errRollBack := tx.Rollback(); errRollBack != nil {
 			return userOrder, fmt.Errorf("repo - UpdateOrder - users.row.Scan: %w - tx.RollBack(): %v", err, errRollBack)
