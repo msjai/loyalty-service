@@ -119,3 +119,23 @@ func (routes *loyaltyRoutes) GerUOrders(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusOK)
 	w.Write(response) //nolint:errcheck
 }
+
+func (routes *loyaltyRoutes) GetUBalance(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userID := ctx.Value(middleware.KeyUserID).(int64)
+
+	User, err := routes.loyalty.GetUserBalance(&entity.User{ID: userID})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response, err := json.Marshal(User)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", ApplicationJSON)
+	w.WriteHeader(http.StatusOK)
+	w.Write(response) //nolint:errcheck
+}

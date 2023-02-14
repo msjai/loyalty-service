@@ -54,11 +54,6 @@ func hashPassword(pass string) string {
 	return fmt.Sprintf("%x", dst)
 }
 
-// GetUserBalance -.
-func (luc *LoyaltyUseCase) GetUserBalance(*entity.Loyalty) (*entity.Loyalty, error) {
-	return nil, nil
-}
-
 // PostUserWithDrawBalance -.
 func (luc *LoyaltyUseCase) PostUserWithDrawBalance(*entity.Loyalty) (*entity.Loyalty, error) {
 	return nil, nil

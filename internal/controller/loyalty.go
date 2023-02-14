@@ -75,13 +75,25 @@ func newLoyaltyRoutes(router *chi.Mux, loyalty usecase.Loyalty, cfg *config.Conf
 		router.Use(compress)
 		router.Use(middleware.IdentifyUser)
 		router.Get("/api/user/orders", routes.GerUOrders)
+		router.Get("/api/user/balance", routes.GetUBalance) // 1 в разработке
 	})
 
-	// router.Get("/api/user/orders", routes.GerUOrders)
-	//	router.Get("/api/user/balance", routes.GetUBalance)
-	//	router.Post("/api/user/balance/withdraw", routes.PostUWDBalance)
-	//	router.Get("/api/user/withdrawals", routes.GetUWD)
+	// Private Routes
+	// Only Json request type accepted
+	// Only gzip request encoding accepted
+	// If the client supports compression, the response will be compressed with gzip
+	router.Group(func(router chi.Router) {
+		router.Use(chiMW.AllowContentEncoding(GZip))
+		// Собственная функция AllowContentType чтобы отдавать ошибку 400 Bad request
+		router.Use(middleware.AllowContentType(ApplicationJSON))
+		router.Use(middleware.Decompress)
+		router.Use(compress)
+		router.Use(middleware.IdentifyUser)
+		router.Post("/api/user/balance/withdraw", routes.PostUWithdraw) // 2 в разработке
+	})
 
+	//	router.Get("/api/user/balance", routes.GetUBalance)
+	//	router.Get("/api/user/withdrawals", routes.GetUWD)
 	go routes.refreshOrdersInfo()
 	return router
 }

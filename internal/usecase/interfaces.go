@@ -11,7 +11,7 @@ type (
 		PostLoginUser(*entity.Loyalty) (*entity.Loyalty, error)
 		PostUserOrder(*entity.UserOrder) (*entity.UserOrder, error)
 		GetUserOrders(*entity.User) ([]*entity.UserOrder, error)
-		GetUserBalance(*entity.Loyalty) (*entity.Loyalty, error)
+		GetUserBalance(user *entity.User) (*entity.User, error)
 		PostUserWithDrawBalance(*entity.Loyalty) (*entity.Loyalty, error)
 		GetUserWithdrawals(*entity.Loyalty) (*entity.Loyalty, error)
 		RefreshOrderInfo(*entity.UserOrder) (*entity.UserOrder, error)
@@ -27,6 +27,7 @@ type (
 		CatchOrdersRefresh() ([]*entity.UserOrder, error)
 		UpdateOrder(*entity.UserOrder) (*entity.UserOrder, error)
 		FindOrders(*entity.User) ([]*entity.UserOrder, error)
+		GetUserBalance(user *entity.User) (*entity.User, error)
 	}
 
 	// LoyaltyWebAPI -.

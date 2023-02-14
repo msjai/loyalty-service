@@ -2,7 +2,8 @@ CREATE TABLE IF NOT EXISTS users(
     id      SERIAL PRIMARY KEY,
     login    VARCHAR NOT NULL UNIQUE,
     password VARCHAR NOT NULL,
-    balance NUMERIC DEFAULT 0
+    balance NUMERIC DEFAULT 0,
+    withdrawn NUMERIC DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS orders

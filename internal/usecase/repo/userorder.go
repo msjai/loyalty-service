@@ -96,6 +96,7 @@ func (r *LoyaltyRepoS) FindOrder(userOrder *entity.UserOrder) (*entity.UserOrder
 	return userOrder, fmt.Errorf("repo - FindOrder - hand made err: %w", ErrOrderAlreadyRegByCurrUser)
 }
 
+// FindOrders -.
 func (r *LoyaltyRepoS) FindOrders(user *entity.User) ([]*entity.UserOrder, error) {
 	if r.repo == nil {
 		return nil, fmt.Errorf("repo - FindOrders - repo: %w", ErrConnectionNotOpen)
@@ -143,4 +144,9 @@ func (r *LoyaltyRepoS) FindOrders(user *entity.User) ([]*entity.UserOrder, error
 	}
 
 	return orders, nil
+}
+
+// GetUserBalance -.
+func (r *LoyaltyRepoS) GetUserBalance(user *entity.User) (*entity.User, error) {
+	return nil, nil
 }

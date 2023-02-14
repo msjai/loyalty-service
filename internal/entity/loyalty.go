@@ -19,11 +19,12 @@ type Loyalty struct {
 
 // User .-
 type User struct {
-	ID       int64   `json:"id"`
-	Login    string  `json:"login" valid:"required"`
-	Password string  `json:"password" valid:"required"`
-	Balance  float64 `json:"balance"`
-	Token    string  `json:"token"`
+	ID        int64   `json:"id"`
+	Login     string  `json:"login" valid:"required"`
+	Password  string  `json:"password" valid:"required"`
+	Balance   float64 `json:"current"`
+	Withdrawn float64 `json:"withdrawn"`
+	Token     string  `json:"token"`
 }
 
 // UserOrder .-
@@ -39,7 +40,7 @@ type UserOrder struct {
 type WithDraw struct {
 	ID          int64     `json:"id"`
 	Number      string    `json:"number" valid:"required"`
-	Sum         float64   `json:"sum,omitempty"` //nolint:tagliatelle
-	UserID      int64     `json:"user_id"`       //nolint:tagliatelle
-	ProcessedAt time.Time `json:"processed_at"`  //nolint:tagliatelle
+	Sum         float64   `json:"sum" valid:"required"` //nolint:tagliatelle
+	UserID      int64     `json:"user_id"`              //nolint:tagliatelle
+	ProcessedAt time.Time `json:"processed_at"`         //nolint:tagliatelle
 }
