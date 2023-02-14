@@ -86,7 +86,7 @@ func (r *LoyaltyRepoS) UpdateOrder(userOrder *entity.UserOrder) (*entity.UserOrd
 		uploadedAt time.Time
 	)
 
-	row = stmt.QueryRow(userOrder.Status, userOrder.AccrualSum, userOrder.Number)
+	row = stmt.QueryRow(userOrder.Status, userOrder.AccrualSum*100, userOrder.Number)
 	err = row.Scan(&id, &number, &status, &userID, &accrualSUM, &uploadedAt)
 	if err != nil {
 		if errRollBack := tx.Rollback(); errRollBack != nil {

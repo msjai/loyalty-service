@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -10,7 +9,7 @@ import (
 )
 
 // AddOrder -.
-func (r *LoyaltyRepoS) AddOrder(ctx context.Context, userOrder *entity.UserOrder) (*entity.UserOrder, error) {
+func (r *LoyaltyRepoS) AddOrder(userOrder *entity.UserOrder) (*entity.UserOrder, error) {
 	if r.repo == nil {
 		return nil, fmt.Errorf("repo - AddOrder - repo: %w", ErrConnectionNotOpen)
 	}
@@ -20,7 +19,7 @@ func (r *LoyaltyRepoS) AddOrder(ctx context.Context, userOrder *entity.UserOrder
 		return nil, fmt.Errorf("repo - AddOrder - repo.Begin: %w", err)
 	}
 
-	stmt, err := tx.PrepareContext(ctx, `INSERT INTO orders (number, status, user_id, uploaded_at)
+	stmt, err := tx.Prepare(`INSERT INTO orders (number, status, user_id, uploaded_at)
 									           values ($1, $2, $3, $4) RETURNING id, number, status, user_id, accrual_sum, uploaded_at`)
 	if err != nil {
 		return nil, fmt.Errorf("repo - AddOrder - tx.PrepareContext: %w", err)
@@ -37,7 +36,7 @@ func (r *LoyaltyRepoS) AddOrder(ctx context.Context, userOrder *entity.UserOrder
 		uploadedAt time.Time
 	)
 
-	row = stmt.QueryRowContext(ctx, userOrder.Number, entity.NEW, userOrder.UserID, time.Now())
+	row = stmt.QueryRow(userOrder.Number, entity.NEW, userOrder.UserID, time.Now())
 	err = row.Scan(&id, &number, &status, &userID, &accrualSUM, &uploadedAt)
 	if err != nil {
 		return userOrder, handleInsertOrderError(tx, err)
@@ -58,7 +57,7 @@ func (r *LoyaltyRepoS) AddOrder(ctx context.Context, userOrder *entity.UserOrder
 }
 
 // FindOrder -.
-func (r *LoyaltyRepoS) FindOrder(ctx context.Context, userOrder *entity.UserOrder) (*entity.UserOrder, error) {
+func (r *LoyaltyRepoS) FindOrder(userOrder *entity.UserOrder) (*entity.UserOrder, error) {
 	if r.repo == nil {
 		return nil, fmt.Errorf("repo - FindOrder - repo: %w", ErrConnectionNotOpen)
 	}
@@ -68,7 +67,7 @@ func (r *LoyaltyRepoS) FindOrder(ctx context.Context, userOrder *entity.UserOrde
 		return nil, fmt.Errorf("repo - FindOrder - repo.Begin: %w", err)
 	}
 
-	stmt, err := tx.PrepareContext(ctx, `SELECT user_id FROM orders WHERE number=$1`)
+	stmt, err := tx.Prepare(`SELECT user_id FROM orders WHERE number=$1`)
 	if err != nil {
 		return nil, fmt.Errorf("repo - FindOrder - tx.PrepareContext: %w", err)
 	}
@@ -79,7 +78,7 @@ func (r *LoyaltyRepoS) FindOrder(ctx context.Context, userOrder *entity.UserOrde
 		userID int64
 	)
 
-	row = stmt.QueryRowContext(ctx, userOrder.Number)
+	row = stmt.QueryRow(userOrder.Number)
 	err = row.Scan(&userID)
 	if err != nil {
 		return nil, handleFindOrderError(tx, err)
@@ -95,4 +94,9 @@ func (r *LoyaltyRepoS) FindOrder(ctx context.Context, userOrder *entity.UserOrde
 	}
 
 	return userOrder, fmt.Errorf("repo - FindOrder - hand made err: %w", ErrOrderAlreadyRegByCurrUser)
+}
+
+func (r *LoyaltyRepoS) FindOrders(*entity.User) ([]*entity.UserOrder, error) {
+
+	return nil, nil
 }

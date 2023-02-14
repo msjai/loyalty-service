@@ -52,7 +52,7 @@ func (routes *loyaltyRoutes) PostRegUHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	loyalty, err := routes.loyalty.PostRegUser(ctx, &entity.Loyalty{User: &User})
+	loyalty, err := routes.loyalty.PostRegUser(&entity.Loyalty{User: &User})
 	if err != nil {
 		if errors.Is(err, usecase.ErrLoginAlreadyTaken) {
 			http.Error(w, usecase.ErrLoginAlreadyTaken.Error(), http.StatusConflict)
@@ -100,7 +100,7 @@ func (routes *loyaltyRoutes) PostLogUHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	loyalty, err := routes.loyalty.PostLoginUser(ctx, &entity.Loyalty{User: &User})
+	loyalty, err := routes.loyalty.PostLoginUser(&entity.Loyalty{User: &User})
 	if err != nil {
 		if errors.Is(err, usecase.ErrInvalidLogPass) {
 			http.Error(w, usecase.ErrInvalidLogPass.Error(), http.StatusUnauthorized)

@@ -64,6 +64,19 @@ func newLoyaltyRoutes(router *chi.Mux, loyalty usecase.Loyalty, cfg *config.Conf
 		router.Post("/api/user/orders", routes.PostUOrder)
 	})
 
+	// Private Routes
+	// Only text/plain request type accepted
+	// Only gzip request encoding accepted
+	// If the client supports compression, the response will be compressed with gzip
+	router.Group(func(router chi.Router) {
+		router.Use(chiMW.AllowContentEncoding())
+		// Собственная функция AllowContentType чтобы отдавать ошибку 400 Bad request
+		router.Use(middleware.AllowContentType())
+		router.Use(compress)
+		router.Use(middleware.IdentifyUser)
+		router.Get("/api/user/orders", routes.GerUOrders)
+	})
+
 	// router.Get("/api/user/orders", routes.GerUOrders)
 	//	router.Get("/api/user/balance", routes.GetUBalance)
 	//	router.Post("/api/user/balance/withdraw", routes.PostUWDBalance)

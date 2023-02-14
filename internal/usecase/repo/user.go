@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 
@@ -9,7 +8,7 @@ import (
 )
 
 // AddNewUser -.
-func (r *LoyaltyRepoS) AddNewUser(ctx context.Context, loyalty *entity.Loyalty) (*entity.Loyalty, error) {
+func (r *LoyaltyRepoS) AddNewUser(loyalty *entity.Loyalty) (*entity.Loyalty, error) {
 	if r.repo == nil {
 		return nil, fmt.Errorf("repo - AddNewUser - repo: %w", ErrConnectionNotOpen)
 	}
@@ -19,7 +18,7 @@ func (r *LoyaltyRepoS) AddNewUser(ctx context.Context, loyalty *entity.Loyalty) 
 		return nil, fmt.Errorf("repo - AddNewUser - repo.Begin: %w", err)
 	}
 
-	stmt, err := tx.PrepareContext(ctx, `INSERT INTO users (login, password) values ($1, $2) RETURNING id`)
+	stmt, err := tx.Prepare(`INSERT INTO users (login, password) values ($1, $2) RETURNING id`)
 	if err != nil {
 		return nil, fmt.Errorf("repo - AddNewUser - tx.PrepareContext: %w", err)
 	}
@@ -30,7 +29,7 @@ func (r *LoyaltyRepoS) AddNewUser(ctx context.Context, loyalty *entity.Loyalty) 
 		id  int64
 	)
 
-	row = stmt.QueryRowContext(ctx, loyalty.User.Login, loyalty.User.Password)
+	row = stmt.QueryRow(loyalty.User.Login, loyalty.User.Password)
 	err = row.Scan(&id)
 	if err != nil {
 		return nil, handleInsertUserError(tx, err)
@@ -45,7 +44,7 @@ func (r *LoyaltyRepoS) AddNewUser(ctx context.Context, loyalty *entity.Loyalty) 
 }
 
 // FindUser -.
-func (r *LoyaltyRepoS) FindUser(ctx context.Context, loyalty *entity.Loyalty) (*entity.Loyalty, error) {
+func (r *LoyaltyRepoS) FindUser(loyalty *entity.Loyalty) (*entity.Loyalty, error) {
 	if r.repo == nil {
 		return nil, fmt.Errorf("repo - FindUser - repo: %w", ErrConnectionNotOpen)
 	}
@@ -55,7 +54,7 @@ func (r *LoyaltyRepoS) FindUser(ctx context.Context, loyalty *entity.Loyalty) (*
 		return nil, fmt.Errorf("repo - FindUser - repo.Begin: %w", err)
 	}
 
-	stmt, err := tx.PrepareContext(ctx, `SELECT id FROM users WHERE login=$1 and password= $2`)
+	stmt, err := tx.Prepare(`SELECT id FROM users WHERE login=$1 and password= $2`)
 	if err != nil {
 		return nil, fmt.Errorf("repo - FindUser - tx.PrepareContext: %w", err)
 	}
@@ -66,7 +65,7 @@ func (r *LoyaltyRepoS) FindUser(ctx context.Context, loyalty *entity.Loyalty) (*
 		id  int64
 	)
 
-	row = stmt.QueryRowContext(ctx, loyalty.User.Login, loyalty.User.Password)
+	row = stmt.QueryRow(loyalty.User.Login, loyalty.User.Password)
 	err = row.Scan(&id)
 	if err != nil {
 		return nil, handleFindUserError(tx, err)

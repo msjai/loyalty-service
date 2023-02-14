@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -52,16 +51,16 @@ func hashPassword(pass string) string {
 }
 
 // GetUserBalance -.
-func (luc *LoyaltyUseCase) GetUserBalance(context.Context, *entity.Loyalty) (*entity.Loyalty, error) {
+func (luc *LoyaltyUseCase) GetUserBalance(*entity.Loyalty) (*entity.Loyalty, error) {
 	return nil, nil
 }
 
 // PostUserWithDrawBalance -.
-func (luc *LoyaltyUseCase) PostUserWithDrawBalance(context.Context, *entity.Loyalty) (*entity.Loyalty, error) {
+func (luc *LoyaltyUseCase) PostUserWithDrawBalance(*entity.Loyalty) (*entity.Loyalty, error) {
 	return nil, nil
 }
 
 // GetUserWithdrawals -.
-func (luc *LoyaltyUseCase) GetUserWithdrawals(context.Context, *entity.Loyalty) (*entity.Loyalty, error) {
+func (luc *LoyaltyUseCase) GetUserWithdrawals(*entity.Loyalty) (*entity.Loyalty, error) {
 	return nil, nil
 }

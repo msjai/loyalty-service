@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strconv"
@@ -11,19 +10,18 @@ import (
 )
 
 // PostUserOrder -.
-func (luc *LoyaltyUseCase) PostUserOrder(ctx context.Context, userOrder *entity.UserOrder) (*entity.UserOrder, error) {
+func (luc *LoyaltyUseCase) PostUserOrder(userOrder *entity.UserOrder) (*entity.UserOrder, error) {
 	uintNumber, _ := strconv.ParseUint(userOrder.Number, 10, 64)
 	if !ValidOrderNumber(uintNumber) {
 		return nil, fmt.Errorf("usecase - PostUserOrder - validNumber: %w", ErrInvalidOrderNumber)
 	}
 
-	userOrder, err := luc.repo.AddOrder(ctx, userOrder)
-	// var userIDInDB int64
+	userOrder, err := luc.repo.AddOrder(userOrder)
 	if err != nil {
 		// Если заказ с таким номером уже существует в базе,
 		// то делаем повторный запрос, чтобы узнать ID пользователя, под которым был внесен заказ
 		if errors.Is(err, repo.ErrOrderNumExists) {
-			userOrder, err = luc.repo.FindOrder(ctx, userOrder)
+			userOrder, err = luc.repo.FindOrder(userOrder)
 			if err != nil {
 				if errors.Is(err, repo.ErrOrderAlreadyRegByAnotherUser) {
 					return userOrder, fmt.Errorf("usecase - PostUserOrder - FindOrder: %w", ErrOrderAlreadyRegByAnotherUser)
@@ -42,6 +40,9 @@ func (luc *LoyaltyUseCase) PostUserOrder(ctx context.Context, userOrder *entity.
 }
 
 // GetUserOrders -.
-func (luc *LoyaltyUseCase) GetUserOrders(ctx context.Context, loyalty *entity.Loyalty) (*entity.Loyalty, error) {
+func (luc *LoyaltyUseCase) GetUserOrders(user *entity.User) ([]*entity.UserOrder, error) {
+
+	// userOrders, err := luc.repo.FindOrders(user)
+
 	return nil, nil
 }

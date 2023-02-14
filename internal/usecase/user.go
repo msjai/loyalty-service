@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
@@ -10,11 +9,11 @@ import (
 )
 
 // PostRegUser -.
-func (luc *LoyaltyUseCase) PostRegUser(ctx context.Context, loyalty *entity.Loyalty) (*entity.Loyalty, error) {
+func (luc *LoyaltyUseCase) PostRegUser(loyalty *entity.Loyalty) (*entity.Loyalty, error) {
 	// TODO Перенести вызов функции на уровень репозитория
 	loyalty.User.Password = hashPassword(loyalty.User.Password)
 
-	loyalty, err := luc.repo.AddNewUser(ctx, loyalty)
+	loyalty, err := luc.repo.AddNewUser(loyalty)
 	if err != nil {
 		if errors.Is(err, repo.ErrLoginAlreadyTaken) {
 			return nil, fmt.Errorf("usecase - PostRegUser - AddNewUser: %w", ErrLoginAlreadyTaken)
@@ -31,10 +30,10 @@ func (luc *LoyaltyUseCase) PostRegUser(ctx context.Context, loyalty *entity.Loya
 }
 
 // PostLoginUser -.
-func (luc *LoyaltyUseCase) PostLoginUser(ctx context.Context, loyalty *entity.Loyalty) (*entity.Loyalty, error) {
+func (luc *LoyaltyUseCase) PostLoginUser(loyalty *entity.Loyalty) (*entity.Loyalty, error) {
 	loyalty.User.Password = hashPassword(loyalty.User.Password)
 
-	loyalty, err := luc.repo.FindUser(ctx, loyalty)
+	loyalty, err := luc.repo.FindUser(loyalty)
 	if err != nil {
 		if errors.Is(err, repo.ErrInvalidLogPass) {
 			return nil, fmt.Errorf("usecase - PostLoginUser - FindUser: %w", ErrInvalidLogPass)
