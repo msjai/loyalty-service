@@ -28,7 +28,8 @@ func (luc *LoyaltyUseCase) RefreshOrderInfo(userOrder *entity.UserOrder) (*entit
 
 	// Если статус обновился, обновляем запись в базе
 	if oldStatus != userOrder.Status {
-		// userOrder, err = luc.RefreshOrderInfo(userOrder)
+		// Здесь умножаем сумму начисления на 100, потому что в базе храним в копейках
+		userOrder.AccrualSum *= 100
 		userOrder, err = luc.repo.UpdateOrder(userOrder)
 		if err != nil {
 			return userOrder, fmt.Errorf("usecase - RefreshOrderInfo - repo.UpdateOrder: %w", err)

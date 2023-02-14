@@ -60,6 +60,7 @@ func (luc *LoyaltyUseCase) GetUserBalance(user *entity.User) (*entity.UserBalanc
 		return balance, fmt.Errorf("usecase - GetUserBalance - repo.GetUserBalance: %w", err)
 	}
 
+	// Здесь делим суммы на 100, потому что в базе храним в копейках
 	balance.Current = user.Balance / 100
 	balance.Withdrawn = user.Withdrawn / 100
 

@@ -120,8 +120,8 @@ func (routes *loyaltyRoutes) GerUOrders(w http.ResponseWriter, r *http.Request) 
 	w.Write(response) //nolint:errcheck
 }
 
+// GetUBalance -.
 func (routes *loyaltyRoutes) GetUBalance(w http.ResponseWriter, r *http.Request) {
-
 	ctx := r.Context()
 	userID := ctx.Value(middleware.KeyUserID).(int64)
 
