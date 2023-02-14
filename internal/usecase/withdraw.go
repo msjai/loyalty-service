@@ -16,7 +16,7 @@ func (luc *LoyaltyUseCase) PostUserWithDrawBalance(withDraw *entity.WithDraw) (*
 
 	withDraw, err := luc.repo.WithDraw(withDraw)
 	if err != nil {
-
+		//
 	}
 
 	return withDraw, nil
