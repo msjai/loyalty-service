@@ -1,10 +1,15 @@
 package controller
 
 import (
+	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
 	"time"
 
+	"github.com/msjai/loyalty-service/internal/controller/middleware"
 	"github.com/msjai/loyalty-service/internal/entity"
+	"github.com/msjai/loyalty-service/internal/usecase"
 )
 
 const withDrawSucces = "withdraw success"
@@ -19,40 +24,40 @@ func clearWhithDrawFields(withDraw *entity.WithDraw) *entity.WithDraw {
 
 // PostUWithdraw -.
 func (routes *loyaltyRoutes) PostUWithdraw(w http.ResponseWriter, r *http.Request) {
-	// var withDraw = &entity.WithDraw{}
-	// // Через контекст получаем reader
-	// // В случае необходимости тело было распаковано в middleware
-	// // Далее передаем этот же контекст в UseCase
-	// ctx := r.Context()
-	// reader := ctx.Value(middleware.KeyReader).(io.Reader)
-	// userID := ctx.Value(middleware.KeyUserID).(int64)
-	//
-	// b, err := io.ReadAll(reader)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusUnprocessableEntity)
-	// 	return
-	// }
-	//
-	// err = json.Unmarshal(b, withDraw)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusUnprocessableEntity)
-	// 	return
-	// }
-	//
-	// withDraw = clearWhithDrawFields(withDraw)
-	// withDraw.UserID = userID
-	//
-	// _, err = routes.loyalty.PostUserWithDrawBalance(withDraw)
-	// if err != nil {
-	// 	if errors.Is(err, usecase.ErrInvalidOrderNumber) {
-	// 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
-	// 		return
-	// 	}
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
-	//
-	// w.Header().Set("Content-Type", ApplicationJSON)
-	// w.WriteHeader(http.StatusOK)
-	// w.Write([]byte(withDrawSucces)) //nolint:errcheck
+	var withDraw = &entity.WithDraw{}
+	// Через контекст получаем reader
+	// В случае необходимости тело было распаковано в middleware
+	// Далее передаем этот же контекст в UseCase
+	ctx := r.Context()
+	reader := ctx.Value(middleware.KeyReader).(io.Reader)
+	userID := ctx.Value(middleware.KeyUserID).(int64)
+
+	b, err := io.ReadAll(reader)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	err = json.Unmarshal(b, withDraw)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	withDraw = clearWhithDrawFields(withDraw)
+	withDraw.UserID = userID
+
+	_, err = routes.loyalty.PostUserWithDrawBalance(withDraw)
+	if err != nil {
+		if errors.Is(err, usecase.ErrInvalidOrderNumber) {
+			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", ApplicationJSON)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(withDrawSucces)) //nolint:errcheck
 }
