@@ -11,7 +11,7 @@ type (
 		PostLoginUser(*entity.Loyalty) (*entity.Loyalty, error)
 		PostUserOrder(*entity.UserOrder) (*entity.UserOrder, error)
 		GetUserOrders(*entity.User) ([]*entity.UserOrder, error)
-		GetUserBalance(user *entity.User) (*entity.User, error)
+		GetUserBalance(user *entity.User) (*entity.UserBalance, error)
 		PostUserWithDrawBalance(*entity.Loyalty) (*entity.Loyalty, error)
 		GetUserWithdrawals(*entity.Loyalty) (*entity.Loyalty, error)
 		RefreshOrderInfo(*entity.UserOrder) (*entity.UserOrder, error)

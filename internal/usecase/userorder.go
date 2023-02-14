@@ -52,10 +52,16 @@ func (luc *LoyaltyUseCase) GetUserOrders(user *entity.User) ([]*entity.UserOrder
 	return userOrders, nil
 }
 
-func (luc *LoyaltyUseCase) GetUserBalance(user *entity.User) (*entity.User, error) {
+func (luc *LoyaltyUseCase) GetUserBalance(user *entity.User) (*entity.UserBalance, error) {
+	balance := &entity.UserBalance{}
+
 	user, err := luc.repo.GetUserBalance(user)
 	if err != nil {
-		return user, fmt.Errorf("usecase - GetUserBalance - repo.GetUserBalance: %w", err)
+		return balance, fmt.Errorf("usecase - GetUserBalance - repo.GetUserBalance: %w", err)
 	}
-	return user, nil
+
+	balance.Current = user.Balance / 100
+	balance.Withdrawn = user.Withdrawn / 100
+
+	return balance, nil
 }
