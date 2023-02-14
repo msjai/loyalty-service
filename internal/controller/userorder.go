@@ -13,6 +13,12 @@ import (
 
 const orderAlreadyRegByCurrentU = "order already registered by current user"
 
+// userBalance -.
+type userBalance struct {
+	Current   float64 `json:"current"`
+	Withdrawn float64 `json:"withdrawn"`
+}
+
 // refreshOrdersInfo - Функция инициирует обновление информации по заказам, статусы по которым не окончательные.
 // Функция обращается к уровню usecase.
 // Далее по каждому заказу из списка инициируется обновление статуса
@@ -121,6 +127,8 @@ func (routes *loyaltyRoutes) GerUOrders(w http.ResponseWriter, r *http.Request) 
 }
 
 func (routes *loyaltyRoutes) GetUBalance(w http.ResponseWriter, r *http.Request) {
+	balance := &userBalance{}
+
 	ctx := r.Context()
 	userID := ctx.Value(middleware.KeyUserID).(int64)
 
@@ -130,7 +138,10 @@ func (routes *loyaltyRoutes) GetUBalance(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	response, err := json.Marshal(User)
+	balance.Current = User.Balance
+	balance.Withdrawn = User.Withdrawn
+
+	response, err := json.Marshal(balance)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

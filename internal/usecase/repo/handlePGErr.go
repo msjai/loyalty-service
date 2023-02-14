@@ -81,3 +81,12 @@ func handleFindOrdersError(tx *sql.Tx, err error) error {
 	}
 	return fmt.Errorf("repo - FindOrders - row.Scan: %w", err)
 }
+
+func handleGetUserBalance(tx *sql.Tx, err error) error {
+	// Здесь err только для условия отката транзакции, не перезаписывает исходную ошибку
+	if rollbackERR := tx.Rollback(); rollbackERR != nil {
+		return fmt.Errorf("repo - GetUserBalance - stmt.QueryRowContext: %w - tx.Rollback(): %v", err, rollbackERR)
+	}
+
+	return fmt.Errorf("repo - GetUserBalance - stmt.QueryRowContext: %w", err)
+}

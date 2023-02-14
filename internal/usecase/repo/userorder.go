@@ -148,5 +148,34 @@ func (r *LoyaltyRepoS) FindOrders(user *entity.User) ([]*entity.UserOrder, error
 
 // GetUserBalance -.
 func (r *LoyaltyRepoS) GetUserBalance(user *entity.User) (*entity.User, error) {
-	return nil, nil
+	if r.repo == nil {
+		return nil, fmt.Errorf("repo - GetUserBalance - repo: %w", ErrConnectionNotOpen)
+	}
+
+	tx, err := r.repo.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("repo - GetUserBalance - repo.Begin: %w", err)
+	}
+
+	stmt, err := tx.Prepare(`SELECT balance, withdrawn 
+									FROM users
+									WHERE users.id=$1`)
+
+	if err != nil {
+		return nil, fmt.Errorf("repo - GetUserBalance - tx.PrepareContext: %w", err)
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(user.ID)
+
+	err = row.Scan(&user.Balance, &user.Withdrawn)
+	if err != nil {
+		return nil, handleGetUserBalance(tx, err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, fmt.Errorf("repo - GetUserBalance - tx.Commit: %w", err)
+	}
+
+	return user, nil
 }
