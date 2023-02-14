@@ -106,7 +106,10 @@ func (r *LoyaltyRepoS) FindOrders(user *entity.User) ([]*entity.UserOrder, error
 		return nil, fmt.Errorf("repo - FindOrders - repo.Begin: %w", err)
 	}
 
-	stmt, err := tx.Prepare(`SELECT id, number, status, user_id, accrual_sum, uploaded_at FROM orders WHERE orders.user_id=$1`)
+	stmt, err := tx.Prepare(`SELECT id, number, status, user_id, accrual_sum, uploaded_at 
+									FROM orders
+									WHERE orders.user_id=$1
+									ORDER BY uploaded_at`)
 	if err != nil {
 		return nil, fmt.Errorf("repo - FindOrders - tx.PrepareContext: %w", err)
 	}
