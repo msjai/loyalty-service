@@ -91,13 +91,30 @@ func (r *LoyaltyRepoS) UpdateOrder(userOrder *entity.UserOrder) (*entity.UserOrd
 	}
 	defer stmt1.Close()
 
-	_, err = stmt1.Exec(userOrder.AccrualSum, userOrder.UserID)
+	res, err := stmt1.Exec(userOrder.AccrualSum, userOrder.UserID)
 	if err != nil {
 		if errRollBack := tx.Rollback(); errRollBack != nil {
-			return userOrder, fmt.Errorf("repo - UpdateOrder - users.row.Scan: %w - tx.RollBack(): %v", err, errRollBack)
+			return userOrder, fmt.Errorf("repo - UpdateOrder - stmt1.Exec: %w - tx.RollBack(): %v", err, errRollBack)
 		}
 
-		return userOrder, fmt.Errorf("repo - UpdateOrder - users.row.Scan: %w", err)
+		return userOrder, fmt.Errorf("repo - UpdateOrder - stmt1.Exec: %w", err)
+	}
+
+	rowsAf, err := res.RowsAffected()
+	if err != nil {
+		if errRollBack := tx.Rollback(); errRollBack != nil {
+			return userOrder, fmt.Errorf("repo - UpdateOrder - RowsAffected: %w - tx.RollBack(): %v", err, errRollBack)
+		}
+
+		return userOrder, fmt.Errorf("repo - UpdateOrder - RowsAffected: %w", err)
+	}
+
+	if rowsAf == 0 {
+		if errRollBack := tx.Rollback(); errRollBack != nil {
+			return userOrder, fmt.Errorf("repo - UpdateOrder - RowsAffected = 0: %w - tx.RollBack(): %v - userID: %v - userOrder: %v", ErrUBalanceNotUpdAfterRegOrder, errRollBack, userOrder.UserID, userOrder.Number)
+		}
+
+		return userOrder, fmt.Errorf("repo - UpdateOrder - RowsAffected = 0: %w - userID: %v - userOrder: %v", ErrUBalanceNotUpdAfterRegOrder, userOrder.UserID, userOrder.Number)
 	}
 
 	if err = tx.Commit(); err != nil {

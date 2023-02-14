@@ -18,6 +18,8 @@ var (
 
 	// ErrNoUserOders - это 204 ошибка, дляслучая когда нет данных ни по одному заказу пользователя
 	ErrNoUserOdersRL = errors.New("no data to response")
+
+	ErrUBalanceNotUpdAfterRegOrder = errors.New("after reg new order can't update user balance")
 )
 
 // LoyaltyRepoS -.
