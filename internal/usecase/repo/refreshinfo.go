@@ -1,9 +1,7 @@
 package repo
 
 import (
-	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/msjai/loyalty-service/internal/entity"
 )
@@ -76,22 +74,8 @@ func (r *LoyaltyRepoS) UpdateOrder(userOrder *entity.UserOrder) (*entity.UserOrd
 	}
 	defer stmt.Close()
 
-	var (
-		row        *sql.Row
-		id         int64
-		number     string
-		status     string
-		userID     int64
-		accrualSUM float64
-		uploadedAt time.Time
-
-		userID1        int64
-		userBalance1   float64
-		userWithdrawn1 float64
-	)
-
-	row = stmt.QueryRow(userOrder.Status, userOrder.AccrualSum, userOrder.Number)
-	err = row.Scan(&id, &number, &status, &userID, &accrualSUM, &uploadedAt)
+	row := stmt.QueryRow(userOrder.Status, userOrder.AccrualSum, userOrder.Number)
+	err = row.Scan(&userOrder.ID, &userOrder.Number, &userOrder.Status, &userOrder.UserID, &userOrder.AccrualSum, &userOrder.UploadedAt)
 	if err != nil {
 		if errRollBack := tx.Rollback(); errRollBack != nil {
 			return userOrder, fmt.Errorf("repo - UpdateOrder - row.Scan: %w - tx.RollBack(): %v", err, errRollBack)
@@ -101,33 +85,25 @@ func (r *LoyaltyRepoS) UpdateOrder(userOrder *entity.UserOrder) (*entity.UserOrd
 	}
 
 	// Здесь в одной транзакции увеличиваем баланс пользователя, в таблице users
-	stmt1, err := tx.Prepare(`UPDATE users SET balance=balance+$1 WHERE id=$2 RETURNING id, balance, withdrawn`)
+	stmt1, err := tx.Prepare(`UPDATE users SET balance=balance+$1 WHERE id=$2`)
 	if err != nil {
 		return nil, fmt.Errorf("repo - UpdateOrder - tx.PrepareContext: %w", err)
 	}
 	defer stmt1.Close()
 
 	row = stmt1.QueryRow(userOrder.AccrualSum, userOrder.UserID)
-	err = row.Scan(&userID1, &userBalance1, &userWithdrawn1)
+	err = row.Scan()
 	if err != nil {
 		if errRollBack := tx.Rollback(); errRollBack != nil {
-			return userOrder, fmt.Errorf("repo - UpdateOrder - row.Scan: %w - tx.RollBack(): %v", err, errRollBack)
+			return userOrder, fmt.Errorf("repo - UpdateOrder - users.row.Scan: %w - tx.RollBack(): %v", err, errRollBack)
 		}
 
-		return userOrder, fmt.Errorf("repo - UpdateOrder - row.Scan: %w", err)
+		return userOrder, fmt.Errorf("repo - UpdateOrder - users.row.Scan: %w", err)
 	}
 
 	if err = tx.Commit(); err != nil {
 		return userOrder, fmt.Errorf("repo - UpdateOrder - tx.Commit: %w", err)
 	}
 
-	userOrder.ID = id
-	userOrder.Number = number
-	userOrder.Status = status
-	userOrder.UserID = userID
-	userOrder.AccrualSum = accrualSUM
-	userOrder.UploadedAt = uploadedAt
-
 	return userOrder, nil
-
 }
