@@ -101,20 +101,9 @@ func (r *LoyaltyRepoS) UpdateOrder(userOrder *entity.UserOrder) (*entity.UserOrd
 	}
 
 	rowsAf, err := res.RowsAffected()
+	err = handleRABalance(rowsAf, tx, userOrder, err)
 	if err != nil {
-		if errRollBack := tx.Rollback(); errRollBack != nil {
-			return userOrder, fmt.Errorf("repo - UpdateOrder - RowsAffected: %w - tx.RollBack(): %v", err, errRollBack)
-		}
-
 		return userOrder, fmt.Errorf("repo - UpdateOrder - RowsAffected: %w", err)
-	}
-
-	if rowsAf == 0 {
-		if errRollBack := tx.Rollback(); errRollBack != nil {
-			return userOrder, fmt.Errorf("repo - UpdateOrder - RowsAffected = 0: %w - tx.RollBack(): %v - userID: %v - userOrder: %v", ErrUBalanceNotUpdAfterRegOrder, errRollBack, userOrder.UserID, userOrder.Number)
-		}
-
-		return userOrder, fmt.Errorf("repo - UpdateOrder - RowsAffected = 0: %w - userID: %v - userOrder: %v", ErrUBalanceNotUpdAfterRegOrder, userOrder.UserID, userOrder.Number)
 	}
 
 	if err = tx.Commit(); err != nil {

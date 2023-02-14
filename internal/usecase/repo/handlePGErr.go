@@ -6,8 +6,11 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgconn"
+
+	"github.com/msjai/loyalty-service/internal/entity"
 )
 
+// handleInsertUserError - .
 func handleInsertUserError(tx *sql.Tx, err error) error {
 	// Здесь err только для условия отката транзакции, не перезаписывает исходную ошибку
 	if err := tx.Rollback(); err != nil {
@@ -23,6 +26,7 @@ func handleInsertUserError(tx *sql.Tx, err error) error {
 	return fmt.Errorf("repo - AddNewUser - stmt.QueryRowContext: %w", err)
 }
 
+// handleFindUserError -.
 func handleFindUserError(tx *sql.Tx, err error) error {
 	// Здесь err только для условия отката транзакции, не перезаписывает исходную ошибку
 	if err := tx.Rollback(); err != nil {
@@ -38,6 +42,7 @@ func handleFindUserError(tx *sql.Tx, err error) error {
 	return fmt.Errorf("repo - FindUser - stmt.QueryRowContext: %w", err)
 }
 
+// handleInsertOrderError -.
 func handleInsertOrderError(tx *sql.Tx, err error) error {
 	// Здесь err только для условия отката транзакции, не перезаписывает исходную ошибку
 	rollbackERR := tx.Rollback()
@@ -58,6 +63,7 @@ func handleInsertOrderError(tx *sql.Tx, err error) error {
 	return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w", err)
 }
 
+// handleFindOrderError -.
 func handleFindOrderError(tx *sql.Tx, err error) error {
 	// Здесь err только для условия отката транзакции, не перезаписывает исходную ошибку
 	if rollbackERR := tx.Rollback(); rollbackERR != nil {
@@ -67,6 +73,7 @@ func handleFindOrderError(tx *sql.Tx, err error) error {
 	return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w", err)
 }
 
+// handleFindOrdersError -.
 func handleFindOrdersError(tx *sql.Tx, err error) error {
 	if errRollBack := tx.Rollback(); errRollBack != nil {
 		// Если не нашли таких записей
@@ -82,6 +89,7 @@ func handleFindOrdersError(tx *sql.Tx, err error) error {
 	return fmt.Errorf("repo - FindOrders - row.Scan: %w", err)
 }
 
+// handleGetUserBalance -.
 func handleGetUserBalance(tx *sql.Tx, err error) error {
 	// Здесь err только для условия отката транзакции, не перезаписывает исходную ошибку
 	if rollbackERR := tx.Rollback(); rollbackERR != nil {
@@ -89,4 +97,25 @@ func handleGetUserBalance(tx *sql.Tx, err error) error {
 	}
 
 	return fmt.Errorf("repo - GetUserBalance - stmt.QueryRowContext: %w", err)
+}
+
+// handleRABalance -.
+func handleRABalance(rowsAf int64, tx *sql.Tx, userOrder *entity.UserOrder, err error) error {
+	if err != nil {
+		if errRollBack := tx.Rollback(); errRollBack != nil {
+			return fmt.Errorf("repo - UpdateOrder - RowsAffected: %w - tx.RollBack(): %v", err, errRollBack)
+		}
+
+		return fmt.Errorf("repo - UpdateOrder - RowsAffected: %w", err)
+	}
+
+	if rowsAf == 0 {
+		if errRollBack := tx.Rollback(); errRollBack != nil {
+			return fmt.Errorf("repo - UpdateOrder - RowsAffected = 0: %w - tx.RollBack(): %v - userID: %v - userOrder: %v", ErrUBalanceNotUpdAfterRegOrder, errRollBack, userOrder.UserID, userOrder.Number)
+		}
+
+		return fmt.Errorf("repo - UpdateOrder - RowsAffected = 0: %w - userID: %v - userOrder: %v", ErrUBalanceNotUpdAfterRegOrder, userOrder.UserID, userOrder.Number)
+	}
+
+	return nil
 }
