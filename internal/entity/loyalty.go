@@ -20,7 +20,7 @@ type Loyalty struct {
 // UserOrder .-
 type UserOrder struct {
 	ID         int64     `json:"id"`
-	Number     string    `json:"order" valid:"required"`
+	Number     string    `json:"number" valid:"required"`
 	Status     string    `json:"status"`
 	UserID     int64     `json:"user_id"`           //nolint:tagliatelle
 	AccrualSum float64   `json:"accrual,omitempty"` //nolint:tagliatelle
