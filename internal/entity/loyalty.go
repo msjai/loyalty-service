@@ -45,7 +45,7 @@ type WithDraw struct {
 	ProcessedAt time.Time `json:"processed_at"`         //nolint:tagliatelle
 }
 
-// userBalance -.
+// UserBalance -.
 type UserBalance struct {
 	Current   float64 `json:"current"`
 	Withdrawn float64 `json:"withdrawn"`
