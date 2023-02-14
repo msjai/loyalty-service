@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -98,24 +99,23 @@ func (routes *loyaltyRoutes) GerUOrders(w http.ResponseWriter, r *http.Request) 
 	ctx := r.Context()
 	userID := ctx.Value(middleware.KeyUserID).(int64)
 
-	_, err := routes.loyalty.GetUserOrders(&entity.User{ID: userID})
+	userOrders, err := routes.loyalty.GetUserOrders(&entity.User{ID: userID})
 	if err != nil {
-		http.Error(w, usecase.ErrInvalidOrderNumber.Error(), http.StatusInternalServerError)
+		if errors.Is(err, usecase.ErrNoUserOdersUCL) {
+			http.Error(w, usecase.ErrNoUserOdersUCL.Error(), http.StatusNoContent)
+			return
+		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// UserOrders := entity.Loyalty{
-	// 	UserID: "1",
-	// 	UserOrders: []entity.UserOrder{
-	// 		{Number: "1", Status: entity.NEW, Accrual: 100, UploadedAt: time.Now()},
-	// 		{Number: "2", Status: entity.NEW, Accrual: 100, UploadedAt: time.Now()},
-	// 		{Number: "3", Status: entity.NEW, Accrual: 100, UploadedAt: time.Now()},
-	// 	},
-	// }
-	//
-	// userorders, _ := json.Marshal(UserOrders)
-	//
-	// w.Header().Set("Content-Type", ApplicationJSON)
-	// w.WriteHeader(http.StatusOK)
-	// w.Write(userorders)
+	response, err := json.Marshal(userOrders)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", ApplicationJSON)
+	w.WriteHeader(http.StatusOK)
+	w.Write(response) //nolint:errcheck
 }

@@ -66,3 +66,18 @@ func handleFindOrderError(tx *sql.Tx, err error) error {
 
 	return fmt.Errorf("repo - AddOrder - stmt.QueryRowContext: %w", err)
 }
+
+func handleFindOrdersError(tx *sql.Tx, err error) error {
+	if errRollBack := tx.Rollback(); errRollBack != nil {
+		// Если не нашли таких записей
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("repo - FindOrders - row.Scan: %w - tx.RollBack(): %v", ErrNoUserOdersRL, errRollBack)
+		}
+		return fmt.Errorf("repo - FindOrders - row.Scan: %w - tx.RollBack(): %v", err, errRollBack)
+	}
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("repo - FindOrders - row.Scan: %w", ErrNoUserOdersRL)
+	}
+	return fmt.Errorf("repo - FindOrders - row.Scan: %w", err)
+}

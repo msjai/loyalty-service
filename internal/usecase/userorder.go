@@ -41,8 +41,13 @@ func (luc *LoyaltyUseCase) PostUserOrder(userOrder *entity.UserOrder) (*entity.U
 
 // GetUserOrders -.
 func (luc *LoyaltyUseCase) GetUserOrders(user *entity.User) ([]*entity.UserOrder, error) {
+	userOrders, err := luc.repo.FindOrders(user)
+	if err != nil {
+		if errors.Is(err, repo.ErrNoUserOdersRL) {
+			return userOrders, fmt.Errorf("usecase - GetUserOrders - FindOrders: %w", ErrNoUserOdersUCL)
+		}
 
-	// userOrders, err := luc.repo.FindOrders(user)
+	}
 
-	return nil, nil
+	return userOrders, nil
 }

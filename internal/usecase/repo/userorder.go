@@ -96,7 +96,48 @@ func (r *LoyaltyRepoS) FindOrder(userOrder *entity.UserOrder) (*entity.UserOrder
 	return userOrder, fmt.Errorf("repo - FindOrder - hand made err: %w", ErrOrderAlreadyRegByCurrUser)
 }
 
-func (r *LoyaltyRepoS) FindOrders(*entity.User) ([]*entity.UserOrder, error) {
+func (r *LoyaltyRepoS) FindOrders(user *entity.User) ([]*entity.UserOrder, error) {
+	if r.repo == nil {
+		return nil, fmt.Errorf("repo - FindOrders - repo: %w", ErrConnectionNotOpen)
+	}
 
-	return nil, nil
+	tx, err := r.repo.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("repo - FindOrders - repo.Begin: %w", err)
+	}
+
+	stmt, err := tx.Prepare(`SELECT id, number, status, user_id, accrual_sum, uploaded_at FROM orders WHERE orders.user_id=$1`)
+	if err != nil {
+		return nil, fmt.Errorf("repo - FindOrders - tx.PrepareContext: %w", err)
+	}
+	defer stmt.Close()
+
+	var orders []*entity.UserOrder
+
+	rows, err := stmt.Query(user.ID)
+	if err != nil {
+		return orders, fmt.Errorf("repo - FindOrders - stmt.QueryContext: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var userOrder entity.UserOrder
+		err = rows.Scan(&userOrder.ID, &userOrder.Number, &userOrder.Status, &userOrder.UserID, &userOrder.AccrualSum, &userOrder.UploadedAt)
+		if err != nil {
+			return orders, handleFindOrdersError(tx, err)
+		}
+		userOrder.AccrualSum /= 100
+		orders = append(orders, &userOrder)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return orders, fmt.Errorf("repo - FindOrders - tx.Commit: %w", err)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return orders, fmt.Errorf("repo - FindOrders - rows.Err(): %w", err)
+	}
+
+	return orders, nil
 }

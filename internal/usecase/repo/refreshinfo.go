@@ -20,7 +20,7 @@ func (r *LoyaltyRepoS) CatchOrdersRefresh() ([]*entity.UserOrder, error) {
 		return nil, fmt.Errorf("repo - CatchOrdersRefresh - repo.Begin: %w", err)
 	}
 
-	stmt, err := tx.Prepare(`SELECT id, number, status, user_id, accrual_sum, uploaded_at FROM orders WHERE status<>$1 and status<>$2`) // WHERE status<>$1 and status<>$2`)
+	stmt, err := tx.Prepare(`SELECT id, number, status, user_id, accrual_sum, uploaded_at FROM orders WHERE status<>$1 and status<>$2`)
 	if err != nil {
 		return nil, fmt.Errorf("repo - CatchOrdersRefresh - tx.PrepareContext: %w", err)
 	}

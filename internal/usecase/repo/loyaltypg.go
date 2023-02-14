@@ -15,6 +15,9 @@ var (
 	ErrOrderNumExists               = errors.New("order already exists")
 	ErrOrderAlreadyRegByAnotherUser = errors.New("order already registered by another user")
 	ErrOrderAlreadyRegByCurrUser    = errors.New("order already registered by current user")
+
+	// ErrNoUserOders - это 204 ошибка, дляслучая когда нет данных ни по одному заказу пользователя
+	ErrNoUserOdersRL = errors.New("no data to response")
 )
 
 // LoyaltyRepoS -.
