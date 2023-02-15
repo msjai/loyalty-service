@@ -53,6 +53,12 @@ func (routes *loyaltyRoutes) PostUWithdraw(w http.ResponseWriter, r *http.Reques
 			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 			return
 		}
+
+		if errors.Is(err, usecase.ERRInsufficientFund) {
+			http.Error(w, err.Error(), http.StatusPaymentRequired)
+			return
+		}
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

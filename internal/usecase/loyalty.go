@@ -21,6 +21,8 @@ var (
 
 	// ErrNoUserOders - это 204 ошибка, дляслучая когда нет данных ни по одному заказу пользователя
 	ErrNoUserOdersUCL = errors.New("no data to response")
+
+	ERRInsufficientFund = errors.New("insufficient funds to withdraw")
 )
 
 const (
