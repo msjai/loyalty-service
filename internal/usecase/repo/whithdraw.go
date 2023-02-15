@@ -64,17 +64,11 @@ func (r *LoyaltyRepoS) WithDraw(withDraw *entity.WithDraw) (*entity.WithDraw, er
 
 	if balance < 0 {
 		if errRollBack := tx.Rollback(); errRollBack != nil {
-			return withDraw, fmt.Errorf("repo - WithDraw - stmt1.QueryRow: %w - tx.RollBack(): %v", ERRInsufficientFund, errRollBack)
+			return withDraw, fmt.Errorf("repo - WithDraw - stmt1.QueryRow: %w - tx.RollBack(): %v", ErrInsufficientFund, errRollBack)
 		}
 
-		return withDraw, fmt.Errorf("repo - WithDraw - stmt1.QueryRow: %w", ERRInsufficientFund)
+		return withDraw, fmt.Errorf("repo - WithDraw - stmt1.QueryRow: %w", ErrInsufficientFund)
 	}
-
-	// rowsAf, err := res.RowsAffected()
-	// err = handleRABalance(rowsAf, tx, userOrder, err)
-	// if err != nil {
-	// 	return userOrder, fmt.Errorf("repo - WithDraw - RowsAffected: %w", err)
-	// }
 
 	if err = tx.Commit(); err != nil {
 		return withDraw, fmt.Errorf("repo - WithDraw - tx.Commit: %w", err)

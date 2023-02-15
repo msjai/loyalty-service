@@ -20,8 +20,8 @@ func (luc *LoyaltyUseCase) PostUserWithDrawBalance(withDraw *entity.WithDraw) (*
 
 	withDraw, err := luc.repo.WithDraw(withDraw)
 	if err != nil {
-		if errors.Is(err, repo.ERRInsufficientFund) {
-			return withDraw, fmt.Errorf("usecase - PostUserWithDrawBalance - repo.WithDraw: %w", ERRInsufficientFund)
+		if errors.Is(err, repo.ErrInsufficientFund) {
+			return withDraw, fmt.Errorf("usecase - PostUserWithDrawBalance - repo.WithDraw: %w", ErrInsufficientFund)
 		}
 
 		return withDraw, fmt.Errorf("usecase - PostUserWithDrawBalance - repo.WithDraw: %w", err)

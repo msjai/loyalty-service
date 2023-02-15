@@ -21,7 +21,7 @@ var (
 
 	ErrUBalanceNotUpdAfterRegOrder = errors.New("after reg new order can't update user balance")
 
-	ERRInsufficientFund = errors.New("insufficient funds to withdraw")
+	ErrInsufficientFund = errors.New("insufficient funds to withdraw")
 )
 
 // LoyaltyRepoS -.
