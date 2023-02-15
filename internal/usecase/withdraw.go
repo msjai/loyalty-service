@@ -29,3 +29,16 @@ func (luc *LoyaltyUseCase) PostUserWithDrawBalance(withDraw *entity.WithDraw) (*
 
 	return withDraw, nil
 }
+
+// GetUserWithdrawals -.
+func (luc *LoyaltyUseCase) GetUserWithdrawals(user *entity.User) ([]*entity.WithDraw, error) {
+	userWithdrawals, err := luc.repo.GetUserWithdrawals(user)
+	if err != nil {
+		if errors.Is(err, repo.ErrNoUserWithdrawRL) {
+			return userWithdrawals, fmt.Errorf("usecase - GetUserWithdrawals - repo.GetUserWithdrawals: %w", ErrNoUserWithdrawUCL)
+		}
+		return userWithdrawals, fmt.Errorf("usecase - GetUserWithdrawals - repo.GetUserWithdrawals: %w", err)
+	}
+
+	return userWithdrawals, nil
+}

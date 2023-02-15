@@ -39,7 +39,7 @@ type UserOrder struct {
 
 type WithDraw struct {
 	ID          int64     `json:"id"`
-	Number      string    `json:"number" valid:"required"`
+	Number      string    `json:"order" valid:"required"`
 	Sum         float64   `json:"sum" valid:"required"` //nolint:tagliatelle
 	UserID      int64     `json:"user_id"`              //nolint:tagliatelle
 	ProcessedAt time.Time `json:"processed_at"`         //nolint:tagliatelle

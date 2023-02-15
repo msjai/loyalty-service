@@ -89,6 +89,22 @@ func handleFindOrdersError(tx *sql.Tx, err error) error {
 	return fmt.Errorf("repo - FindOrders - row.Scan: %w", err)
 }
 
+// handleFindOrdersError -.
+func handleGetUserWithdrawalsError(tx *sql.Tx, err error) error {
+	if errRollBack := tx.Rollback(); errRollBack != nil {
+		// Если не нашли таких записей
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("repo - GetUserWithdrawals - row.Scan: %w - tx.RollBack(): %v", ErrNoUserWithdrawRL, errRollBack)
+		}
+		return fmt.Errorf("repo - GetUserWithdrawals - row.Scan: %w - tx.RollBack(): %v", err, errRollBack)
+	}
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("repo - GetUserWithdrawals - row.Scan: %w", ErrNoUserWithdrawRL)
+	}
+	return fmt.Errorf("repo - GetUserWithdrawals - row.Scan: %w", err)
+}
+
 // handleGetUserBalance -.
 func handleGetUserBalance(tx *sql.Tx, err error) error {
 	// Здесь err только для условия отката транзакции, не перезаписывает исходную ошибку

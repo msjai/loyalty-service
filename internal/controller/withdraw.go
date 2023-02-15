@@ -67,3 +67,28 @@ func (routes *loyaltyRoutes) PostUWithdraw(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(withDrawSucces)) //nolint:errcheck
 }
+
+func (routes *loyaltyRoutes) GetUserWithdrawals(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userID := ctx.Value(middleware.KeyUserID).(int64)
+
+	userWithdrawals, err := routes.loyalty.GetUserWithdrawals(&entity.User{ID: userID})
+	if err != nil {
+		if errors.Is(err, usecase.ErrNoUserWithdrawUCL) {
+			http.Error(w, usecase.ErrNoUserWithdrawUCL.Error(), http.StatusNoContent)
+			return
+		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response, err := json.Marshal(userWithdrawals)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", ApplicationJSON)
+	w.WriteHeader(http.StatusOK)
+	w.Write(response) //nolint:errcheck
+}

@@ -130,6 +130,7 @@ func (r *LoyaltyRepoS) FindOrders(user *entity.User) ([]*entity.UserOrder, error
 		if err != nil {
 			return orders, handleFindOrdersError(tx, err)
 		}
+		// Здесь сразу приводим сумму к нужному виду, чтобы на уровне usecase не перебирать массив
 		userOrder.AccrualSum /= 100
 		orders = append(orders, &userOrder)
 	}

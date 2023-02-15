@@ -7,6 +7,7 @@ import (
 	"github.com/msjai/loyalty-service/internal/entity"
 )
 
+// WithDraw -.
 func (r *LoyaltyRepoS) WithDraw(withDraw *entity.WithDraw) (*entity.WithDraw, error) {
 	if r.repo == nil {
 		return nil, fmt.Errorf("repo - WithDraw - repo: %w", ErrConnectionNotOpen)
@@ -75,4 +76,55 @@ func (r *LoyaltyRepoS) WithDraw(withDraw *entity.WithDraw) (*entity.WithDraw, er
 	}
 
 	return withDraw, nil
+}
+
+// GetUserWithdrawals -.
+func (r *LoyaltyRepoS) GetUserWithdrawals(user *entity.User) ([]*entity.WithDraw, error) {
+	if r.repo == nil {
+		return nil, fmt.Errorf("repo - GetUserWithdrawals - repo: %w", ErrConnectionNotOpen)
+	}
+
+	tx, err := r.repo.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("repo - GetUserWithdrawals - repo.Begin: %w", err)
+	}
+
+	stmt, err := tx.Prepare(`SELECT id, order_woff_num, sum, user_id, date 
+									FROM writes_off
+									WHERE writes_off.user_id=$1
+									ORDER BY date`)
+	if err != nil {
+		return nil, fmt.Errorf("repo - GetUserWithdrawals - tx.PrepareContext: %w", err)
+	}
+	defer stmt.Close()
+
+	var withdrawals []*entity.WithDraw
+
+	rows, err := stmt.Query(user.ID)
+	if err != nil {
+		return withdrawals, fmt.Errorf("repo - GetUserWithdrawals - stmt.QueryContext: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var userWithdraw entity.WithDraw
+		err = rows.Scan(&userWithdraw.ID, &userWithdraw.Number, &userWithdraw.Sum, &userWithdraw.UserID, &userWithdraw.ProcessedAt)
+		if err != nil {
+			return withdrawals, handleGetUserWithdrawalsError(tx, err)
+		}
+		// Здесь сразу приводим сумму к нужному виду, чтобы на уровне usecase не перебирать массив
+		userWithdraw.Sum /= 100
+		withdrawals = append(withdrawals, &userWithdraw)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return withdrawals, fmt.Errorf("repo - GetUserWithdrawals - tx.Commit: %w", err)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return withdrawals, fmt.Errorf("repo - GetUserWithdrawals - rows.Err(): %w", err)
+	}
+
+	return withdrawals, nil
 }

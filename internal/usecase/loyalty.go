@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/msjai/loyalty-service/internal/config"
-	"github.com/msjai/loyalty-service/internal/entity"
 )
 
 var (
@@ -19,8 +18,10 @@ var (
 	ErrOrderAlreadyRegByAnotherUser = errors.New("order already registered by another user")
 	ErrOrderAlreadyRegByCurrUser    = errors.New("order already registered by current user")
 
-	// ErrNoUserOders - это 204 ошибка, дляслучая когда нет данных ни по одному заказу пользователя
+	// ErrNoUserOdersUCL - это 204 ошибка, дляслучая когда нет данных ни по одному заказу пользователя
 	ErrNoUserOdersUCL = errors.New("no data to response")
+	// ErrNoUserWithdraw - это 204 ошибка, дляслучая когда нет данных ни по одному списанию пользователя
+	ErrNoUserWithdrawUCL = errors.New("no data to response")
 
 	ErrInsufficientFund = errors.New("insufficient funds to withdraw")
 )
@@ -54,9 +55,4 @@ func hashPassword(pass string) string {
 	dst := h.Sum([]byte(salt))
 
 	return fmt.Sprintf("%x", dst)
-}
-
-// GetUserWithdrawals -.
-func (luc *LoyaltyUseCase) GetUserWithdrawals(*entity.Loyalty) (*entity.Loyalty, error) {
-	return nil, nil
 }

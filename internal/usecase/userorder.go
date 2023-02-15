@@ -46,12 +46,13 @@ func (luc *LoyaltyUseCase) GetUserOrders(user *entity.User) ([]*entity.UserOrder
 		if errors.Is(err, repo.ErrNoUserOdersRL) {
 			return userOrders, fmt.Errorf("usecase - GetUserOrders - FindOrders: %w", ErrNoUserOdersUCL)
 		}
-
+		return userOrders, fmt.Errorf("usecase - GetUserOrders - FindOrders: %w", err)
 	}
 
 	return userOrders, nil
 }
 
+// GetUserBalance -.
 func (luc *LoyaltyUseCase) GetUserBalance(user *entity.User) (*entity.UserBalance, error) {
 	balance := &entity.UserBalance{}
 

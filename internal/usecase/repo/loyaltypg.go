@@ -16,8 +16,10 @@ var (
 	ErrOrderAlreadyRegByAnotherUser = errors.New("order already registered by another user")
 	ErrOrderAlreadyRegByCurrUser    = errors.New("order already registered by current user")
 
-	// ErrNoUserOders - это 204 ошибка, дляслучая когда нет данных ни по одному заказу пользователя
+	// ErrNoUserOdersRL - это 204 ошибка, дляслучая когда нет данных ни по одному заказу пользователя
 	ErrNoUserOdersRL = errors.New("no data to response")
+	// ErrNoUserWithdrawRL - это 204 ошибка, дляслучая когда нет данных ни по одному заказу пользователя
+	ErrNoUserWithdrawRL = errors.New("no data to response")
 
 	ErrUBalanceNotUpdAfterRegOrder = errors.New("after reg new order can't update user balance")
 
