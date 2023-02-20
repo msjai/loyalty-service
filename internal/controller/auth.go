@@ -8,13 +8,12 @@ import (
 
 	"github.com/asaskevich/govalidator"
 
-	"github.com/msjai/loyalty-service/internal/controller/middleware"
 	"github.com/msjai/loyalty-service/internal/entity"
 	"github.com/msjai/loyalty-service/internal/usecase"
 )
 
 // clearUserFields -.
-func clearUserFields(user *entity.User) *entity.User {
+func clearUserFields(user entity.User) entity.User {
 	user.ID = 0
 	user.Balance = 0
 	user.Token = ""
@@ -24,12 +23,8 @@ func clearUserFields(user *entity.User) *entity.User {
 // PostRegUHandler -.
 func (routes *loyaltyRoutes) PostRegUHandler(w http.ResponseWriter, r *http.Request) {
 	var User entity.User
-	// Через контекст получаем reader
-	// В случае необходимости тело было распаковано в middleware
-	// Далее передаем этот же контекст в UseCase
-	ctx := r.Context()
-	reader := ctx.Value(middleware.KeyReader).(io.Reader)
 
+	reader := r.Body
 	b, err := io.ReadAll(reader)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -43,7 +38,7 @@ func (routes *loyaltyRoutes) PostRegUHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Обнуляем поля, которые не должны прийти в запросе
-	clearUserFields(&User)
+	User = clearUserFields(User)
 
 	// Проверяем формат структуры и обязательные для заполнения поля
 	_, err = govalidator.ValidateStruct(User)
@@ -70,14 +65,8 @@ func (routes *loyaltyRoutes) PostRegUHandler(w http.ResponseWriter, r *http.Requ
 // PostLogUHandler -.
 func (routes *loyaltyRoutes) PostLogUHandler(w http.ResponseWriter, r *http.Request) {
 	var User entity.User
-	// Через контекст получаем reader
-	// В случае необхоимости тело было распаковано в middleware
-	// Далее передаем этот же контекст в UseCase
-	// var k middleware.KeyForReader
-	// k = "reader"
-	ctx := r.Context()
-	reader := ctx.Value(middleware.KeyReader).(io.Reader)
 
+	reader := r.Body
 	b, err := io.ReadAll(reader)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -91,7 +80,7 @@ func (routes *loyaltyRoutes) PostLogUHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Обнуляем поля, которые не должны прийти в запросе
-	clearUserFields(&User)
+	User = clearUserFields(User)
 
 	// Проверяем формат структуры и обязательные для заполнения поля
 	_, err = govalidator.ValidateStruct(User)

@@ -25,13 +25,10 @@ func clearWhithDrawFields(withDraw *entity.WithDraw) *entity.WithDraw {
 // PostUWithdraw -.
 func (routes *loyaltyRoutes) PostUWithdraw(w http.ResponseWriter, r *http.Request) {
 	var withDraw = &entity.WithDraw{}
-	// Через контекст получаем reader
-	// В случае необходимости тело было распаковано в middleware
-	// Далее передаем этот же контекст в UseCase
 	ctx := r.Context()
-	reader := ctx.Value(middleware.KeyReader).(io.Reader)
 	userID := ctx.Value(middleware.KeyUserID).(int64)
 
+	reader := r.Body
 	b, err := io.ReadAll(reader)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
